@@ -11,4 +11,6 @@
 // along with this software.
 // If not, see <https://www.gnu.org/licenses/agpl-3.0-standalone.html>.
 
+//! Main daemon file
+
 fn main() {}

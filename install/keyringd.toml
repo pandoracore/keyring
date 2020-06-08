@@ -1,0 +1,15 @@
+# Default keyring daemon configuration file
+
+[general]
+data_dir = "./data"
+
+[client.cli]
+connect = "ipc"
+allow = [ "all" ]
+second_auth_seed = ""
+
+[client.user1]
+keys = [ "" ]
+nodes = [ ]
+allow = [ "read", "derive" ]
+second_auth_seed = ""

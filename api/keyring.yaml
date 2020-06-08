@@ -1,74 +1,61 @@
 %YAML 1.2
-# Include generic files containing type definitions
-%TAG !strict! tag:ipfs:some_ipfs_id
-%TAG !core! tag:some_ipfs_id
-%TAG !wallet! tag:some_ipfs_id
+%TAG !strict! tag:https://lnp-bp.org/lnp/strict.yaml
+%TAG !wallet! tag:https://lnp-bp.org/lnp/wallet.yaml
 ---
 name: keyring
-# Possible types are:
-# * P2P, like in bitcoin or lightning P2P protocols
-# * RPC, like in bitcoin or lightning client-server RPC protocols
-# * REST, for web-like client-server applications working with hierarchical resources
-# * PUB, for push-style PUB/SUB patters
 type: RPC
 desctiption: RPC API for Keyring service by Pandora Core
 author: Dr Maxim Orlovsky <orlovsky@pandoracore.com>
 ---
 
-# First, we need to extend our type system
 types:
-  # We can create a type alias for convenience and simple type replacement:
-  # if we decide that id must be 32-bit integer we just need to make change in
-  # one place here
   id: !core!u16
 
-  # Defining a type as an "extension" of (actually, constraint on) an existing
-  # type
-  second_auth_factor: !core!u32
+  second_auth_factor: !!u32
     max: 999999
 
-  # Defining a type as a struct of existing types with field names
   key:
     - id: !id
     - xpubkey: !wallet!xpubkey
     - path: !wallet!derivation_path
     - fingerprint: !wallet!key_fingerprint
 
-# Version is critical: it defines whether two parties connected through this
-# API are compliant. It follows `features` BOLT-9 standard and defines which
-# messages and TLV extensions are covered with each feature bit
 version:
-  - features: 5 # This version defines that a fifth bit is set
+  - features: 0
 
     messages:
-      # Each message starts with ref id, representing type name, and
-      # corresponding message_type u64 value
-      # It may be empty, meaning that message has no data ...
       &ok 1:
 
-      # .. or it may contain a set of fields organized in array
       &error 0:
-        # Each field has it's name and type. The type is either
-        # reference to an imported type name
-        - errtype: !core!u16
-        # which may contain additional parameters, like maximum allowed length
-        # for UTF-8 strings (this parameters are parts of the type definition)
+        - errtype: !!u16
         - info: !strict!utf8
             max: 256
 
+      # Requests key listing
       &keys 1000:
 
-      &keylist 2000:
-        # A strict-encoded array (meaning that the number of items is represented
-        # by u64 number and not by VarInt item) specifying particular type
-        # of the data and limiting maximum number of items further than native
-        # u16-bit limitation
+      # Returned key list
+      &keylist 1001:
         - acconts: !strict!array
             item: !key
             max: 1024
 
-      &derive 1001:
+      # Generates a new seed & extended master private key
+      &seed 2000:
+        - auth: !second_auth_factor
+
+      &export 2100:
         - key_id: !id
+        - auth: !second_auth_factor
+
+      &xpriv 2101:
+        - xpriv: !wallet!xpriv
+
+      &xpub 2102:
+        - xpub: !wallet!xpub
+
+      &derive 3000:
+        - from: !id
         - derive_path: !wallet!derivation_path
         - auth: !second_auth_factor
 
@@ -78,6 +65,7 @@ version:
 rpc:
   # Responses returning either ok or error
   - requests:
+      - &seed
       - &derive
     responses:
       - &ok
