@@ -9,13 +9,11 @@ author: Dr Maxim Orlovsky <orlovsky@pandoracore.com>
 ---
 
 types:
-  id: !core!u16
-
   second_auth_factor: !!u32
     max: 999999
 
   key:
-    - id: !id
+    - id: !wallet!xpubid
     - xpubkey: !wallet!xpubkey
     - path: !wallet!derivation_path
     - fingerprint: !wallet!key_fingerprint
@@ -27,7 +25,7 @@ version:
       &ok 1:
 
       &error 0:
-        - errtype: !!u16
+        - type: !!u16
         - info: !strict!utf8
             max: 256
 
@@ -36,28 +34,28 @@ version:
 
       # Returned key list
       &keylist 1001:
-        - acconts: !strict!array
+        - keys: !strict!array
             item: !key
             max: 1024
 
       # Generates a new seed & extended master private key
       &seed 2000:
-        - auth: !second_auth_factor
+        - auth_code: !second_auth_factor
 
       &export 2100:
-        - key_id: !id
-        - auth: !second_auth_factor
+        - key_id: !wallet!xpubid
+        - auth_code: !second_auth_factor
 
       &xpriv 2101:
-        - xpriv: !wallet!xpriv
+        - xpriv: !wallet!xprivkey
 
       &xpub 2102:
-        - xpub: !wallet!xpub
+        - xpub: !wallet!xpubkey
 
       &derive 3000:
-        - from: !id
-        - derive_path: !wallet!derivation_path
-        - auth: !second_auth_factor
+        - from: !wallet!xpubid
+        - path: !wallet!derivation_path
+        - auth_code: !second_auth_factor
 
     extensions:
       # No TLV extensions are defined
@@ -75,4 +73,25 @@ rpc:
     responses: 
       - &error 
       - &keylist
+
+  - request: &export
+    responses:
+      - &error
+      - &xpriv
+      - &xpuv
+
+vocabulary:
+  rules:
+    rust: pascalise
+  types:
+    second_auth_factor:
+      rust: AuthCode
+  fields:
+    type:
+      rust: code
+  messages:
+    xpriv:
+      rust: XPriv
+    xpub:
+      rust: XPub
 ...
