@@ -20,7 +20,7 @@ use lnpbp::bitcoin::util::bip32::{DerivationPath, ExtendedPrivKey, ExtendedPubKe
 use lnpbp::lnp::presentation::message::{TypedEnum, Unmarshaller};
 use lnpbp::lnp::presentation::{Error, UnmarshallFn};
 use lnpbp::lnp::{Type, UnknownTypeError};
-//use lnpbp::strict_encoding::{strict_encode, StrictDecode};
+use lnpbp::strict_encoding::{strict_encode, StrictDecode};
 use lnpbp::Wrapper;
 
 const MSG_TYPE_SUCCESS: u16 = 1;
@@ -35,7 +35,7 @@ const MSG_TYPE_DERIVE: u16 = 3000;
 
 pub type AuthCode = u32;
 
-#[derive(Clone, Debug, Display)]
+#[derive(Clone, Debug, Display, StrictEncode, StrictDecode)]
 #[display_from(Debug)]
 #[non_exhaustive]
 pub struct Key {
@@ -50,7 +50,7 @@ pub mod message {
     use lnpbp::bitcoin::hash_types::XpubIdentifier;
     use lnpbp::bitcoin::util::bip32::DerivationPath;
 
-    #[derive(Clone, Debug, Display)]
+    #[derive(Clone, Debug, Display, StrictEncode, StrictDecode)]
     #[display_from(Debug)]
     #[non_exhaustive]
     pub struct Export {
@@ -58,7 +58,7 @@ pub mod message {
         pub auth_code: AuthCode,
     }
 
-    #[derive(Clone, Debug, Display)]
+    #[derive(Clone, Debug, Display, StrictEncode, StrictDecode)]
     #[display_from(Debug)]
     #[non_exhaustive]
     pub struct Derive {
@@ -67,7 +67,7 @@ pub mod message {
         pub auth_code: AuthCode,
     }
 
-    #[derive(Clone, Debug, Display)]
+    #[derive(Clone, Debug, Display, StrictEncode, StrictDecode)]
     #[display_from(Debug)]
     #[non_exhaustive]
     pub struct Failure {
@@ -129,8 +129,7 @@ impl TypedEnum for Reply {
         match self {
             Reply::Success => vec![],
             Reply::Failure(failure) => {
-                //strict_encode(failure).expect("Strict encoding for string has failed")
-                unimplemented!()
+                strict_encode(failure).expect("Strict encoding for string has failed")
             }
             _ => unimplemented!(),
         }
@@ -151,7 +150,6 @@ impl Reply {
     }
 
     fn parse_failure(mut reader: &mut dyn io::Read) -> Result<Arc<dyn Any>, Error> {
-        unimplemented!()
-        //Ok(Arc::new(message::Failure::strict_decode(&mut reader)?))
+        Ok(Arc::new(message::Failure::strict_decode(&mut reader)?))
     }
 }

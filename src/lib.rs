@@ -17,6 +17,8 @@ extern crate derive_wrapper;
 extern crate clap;
 #[macro_use]
 extern crate lnpbp;
+#[macro_use]
+extern crate lnpbp_derive;
 
 mod cli;
 mod constants;
