@@ -11,10 +11,14 @@
 // along with this software.
 // If not, see <https://www.gnu.org/licenses/agpl-3.0-standalone.html>.
 
-pub mod message;
-pub mod reply;
-pub mod request;
-pub mod types;
+use super::{message, types};
 
-pub use reply::Reply;
-pub use request::Request;
+#[derive(Clone, Debug, Display)]
+#[display_from(Debug)]
+#[non_exhaustive]
+pub enum Request {
+    Keys,
+    Seed(types::AuthCode),
+    Export(message::Export),
+    Derive(message::Derive),
+}
