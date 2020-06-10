@@ -13,4 +13,37 @@
 
 //! Main daemon file
 
-fn main() {}
+use clap::derive::Clap;
+use log::LevelFilter;
+use std::env;
+
+use lnpbp::TryService;
+
+use keyring::daemon::{Config, Opts, Runtime};
+use keyring::error::BootstrapError;
+
+#[tokio::main]
+async fn main() -> Result<(), BootstrapError> {
+    // TODO: Move on configure_me
+    let opts: Opts = Opts::parse();
+    let config: Config = opts.into();
+
+    if env::var("RUST_LOG").is_err() {
+        env::set_var(
+            "RUST_LOG",
+            match config.verbose {
+                0 => "error",
+                1 => "warn",
+                2 => "info",
+                3 => "debug",
+                4 => "trace",
+                _ => "trace",
+            },
+        );
+    }
+    env_logger::init();
+    log::set_max_level(LevelFilter::Trace);
+
+    let runtime = Runtime::init(config).await?;
+    runtime.run_or_panic("RGBd runtime").await
+}

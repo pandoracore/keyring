@@ -12,5 +12,5 @@
 // If not, see <https://www.gnu.org/licenses/agpl-3.0-standalone.html>.
 
 pub const KEYRING_DATA_DIR: &'static str = "/var/lib/keyring";
-pub const KEYRING_ZMQ_ENDPOINT: &'static str = "ipc://{data_dir}/zmq.rpc";
-pub const KEYRING_TCP_ENDPOINT: &'static str = "tcp://0.0.0.0:20202";
+pub const KEYRING_ZMQ_ENDPOINT: &'static str = "ipc:{data_dir}/zmq.rpc";
+pub const KEYRING_TCP_ENDPOINT: &'static str = "0.0.0.0:20202";

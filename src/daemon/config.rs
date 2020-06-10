@@ -19,11 +19,11 @@ use lnpbp::bp;
 use serde::Deserialize;
 use std::path::PathBuf;
 
-use lnpbp::internet::InetSocketAddr;
 use lnpbp::lnp::transport::zmq::SocketLocator;
 use lnpbp::lnp::{LocalNode, NodeLocator};
 
 use crate::constants::*;
+use std::net::SocketAddr;
 
 #[derive(Clap)]
 #[clap(
@@ -49,7 +49,7 @@ pub struct Opts {
 
     /// ZMQ socket address string for RPC API
     #[clap(
-        long = "rpc",
+        long = "zmq",
         default_value = KEYRING_ZMQ_ENDPOINT,
         env = "KEYRING_ZMQ_ENDPOINT"
     )]
@@ -57,11 +57,11 @@ pub struct Opts {
 
     /// ZMQ socket address string for RPC API
     #[clap(
-        long = "rpc",
+        long = "tcp",
         default_value = KEYRING_TCP_ENDPOINT,
         env = "KEYRING_TCP_ENDPOINT"
     )]
-    pub tcp_endpoint: InetSocketAddr,
+    pub tcp_endpoint: SocketAddr,
 }
 
 #[derive(Clone, PartialEq, Eq, Debug, Display)]
@@ -71,7 +71,7 @@ pub struct Config {
     pub data_dir: PathBuf,
     pub verbose: u8,
     pub zmq_endpoint: SocketLocator,
-    pub tcp_endpoint: InetSocketAddr,
+    pub tcp_endpoint: SocketAddr,
 }
 
 impl From<Opts> for Config {

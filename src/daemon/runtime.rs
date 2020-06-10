@@ -39,10 +39,9 @@ pub struct Runtime {
 }
 
 impl Runtime {
-    pub async fn init(
-        config: Config,
-        mut context: &mut zmq::Context,
-    ) -> Result<Self, BootstrapError> {
+    pub async fn init(config: Config) -> Result<Self, BootstrapError> {
+        let mut context = zmq::Context::new();
+
         let session_rpc = Session::new_zmq_unencrypted(
             ApiType::Server,
             &mut context,

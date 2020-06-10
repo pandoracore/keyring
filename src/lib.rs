@@ -26,12 +26,12 @@ extern crate lnpbp;
 #[macro_use]
 extern crate lnpbp_derive;
 
-mod cli;
+pub mod cli;
 mod constants;
-mod daemon;
-mod error;
-mod rpc;
-mod vault;
+pub mod daemon;
+pub mod error;
+pub(crate) mod rpc;
+pub(crate) mod vault;
 
 pub use constants::*;
 pub use vault::Vault;
