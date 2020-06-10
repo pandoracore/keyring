@@ -20,8 +20,8 @@ use lnpbp::lnp::{transport, NoEncryption, Session, Unmarshall, Unmarshaller};
 use lnpbp::TryService;
 
 use super::Config;
+use crate::api::{types::AuthCode, Reply, Request};
 use crate::error::{BootstrapError, RuntimeError};
-use crate::rpc::{types::AuthCode, Reply, Request};
 use crate::{vault::FileVault, Vault};
 
 pub struct Runtime {

@@ -19,8 +19,8 @@ use lnpbp::lnp::transport::zmq::ApiType;
 use lnpbp::lnp::{transport, NoEncryption, Session, Unmarshall, Unmarshaller};
 
 use super::{Config, Error};
+use crate::api::{Reply, Request};
 use crate::error::BootstrapError;
-use crate::rpc::{Reply, Request};
 
 pub struct Runtime {
     config: Config,
