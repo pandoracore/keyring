@@ -11,19 +11,4 @@
 // along with this software.
 // If not, see <https://www.gnu.org/licenses/agpl-3.0-standalone.html>.
 
-#[macro_use]
-extern crate derive_wrapper;
-#[macro_use]
-extern crate clap;
-#[macro_use]
-extern crate lnpbp;
-
-mod cli;
-mod constants;
-mod daemon;
-mod error;
-mod rpc;
-mod vault;
-
-pub use constants::*;
-pub use vault::Vault;
+pub const KEYRING_RPC_ENDPOINT: &'static str = "tcp://0.0.0.0:20202";

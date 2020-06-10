@@ -11,19 +11,6 @@
 // along with this software.
 // If not, see <https://www.gnu.org/licenses/agpl-3.0-standalone.html>.
 
-#[macro_use]
-extern crate derive_wrapper;
-#[macro_use]
-extern crate clap;
-#[macro_use]
-extern crate lnpbp;
-
-mod cli;
-mod constants;
-mod daemon;
-mod error;
-mod rpc;
-mod vault;
-
-pub use constants::*;
-pub use vault::Vault;
+#[derive(Clone, PartialEq, Eq, Debug, Display, Error, From)]
+#[display_from(Debug)]
+pub enum Error {}
