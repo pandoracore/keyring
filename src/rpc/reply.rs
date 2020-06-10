@@ -17,9 +17,8 @@ use std::sync::Arc;
 
 use lnpbp::bitcoin::hash_types::XpubIdentifier;
 use lnpbp::bitcoin::util::bip32::{DerivationPath, ExtendedPrivKey, ExtendedPubKey, Fingerprint};
-use lnpbp::lnp::presentation::message::{TypedEnum, Unmarshaller};
-use lnpbp::lnp::presentation::{Error, UnmarshallFn};
-use lnpbp::lnp::{Type, UnknownTypeError};
+use lnpbp::lnp::presentation::Error;
+use lnpbp::lnp::{Type, TypedEnum, UnknownTypeError, UnmarshallFn, Unmarshaller};
 use lnpbp::strict_encoding::{strict_encode, StrictDecode};
 use lnpbp::Wrapper;
 
@@ -91,5 +90,16 @@ impl Reply {
 
     fn parse_failure(mut reader: &mut dyn io::Read) -> Result<Arc<dyn Any>, Error> {
         Ok(Arc::new(message::Failure::strict_decode(&mut reader)?))
+    }
+}
+
+impl From<Error> for Reply {
+    fn from(err: Error) -> Self {
+        // TODO: Save error code taken from `Error::to_value()` after
+        //       implementation of `ToValue` trait and derive macro for enums
+        Reply::Failure(message::Failure {
+            code: 0,
+            info: format!("{}", err),
+        })
     }
 }

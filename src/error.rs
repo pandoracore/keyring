@@ -54,3 +54,13 @@ impl From<&str> for BootstrapError {
         BootstrapError::ArgParseError(err.to_string())
     }
 }
+
+#[derive(Debug, Display, Error, From)]
+#[display_from(Debug)]
+pub enum RuntimeError {
+    #[derive_from(lnp::transport::Error)]
+    Transport,
+
+    #[derive_from(lnp::presentation::Error)]
+    Message,
+}

@@ -13,7 +13,7 @@
 
 //! Storage drivers for private key vault
 
-pub trait Vault {}
+pub trait Vault: Send + Sync {}
 
 mod file;
 pub use file::FileVault;

@@ -18,13 +18,13 @@ use core::str::FromStr;
 use lnpbp::lnp::transport::zmq::SocketLocator;
 
 use super::Command;
-use crate::KEYRING_RPC_ENDPOINT;
+use crate::constants::KEYRING_ZMQ_ENDPOINT;
 
 #[derive(Clap, Clone, Debug, Display)]
 #[display_from(Debug)]
 #[clap(
     name = "keyring-cli",
-    version = "0.0.1",
+    version = "0.1.0",
     author = "Dr Maxim Orlovsky <orlovsky@pandoracore.com>",
     about = "Command-line interface to Keyring daemon"
 )]
@@ -41,7 +41,7 @@ pub struct Opts {
     pub verbose: u8,
 
     /// RPC endpoint of keyring daemon
-    #[clap(short, long, default_value = KEYRING_RPC_ENDPOINT)]
+    #[clap(short, long, default_value = KEYRING_ZMQ_ENDPOINT)]
     pub endpoint: String,
 
     /// Command to execute
@@ -75,9 +75,9 @@ impl Default for Config {
     fn default() -> Self {
         Self {
             verbose: 0,
-            endpoint: KEYRING_RPC_ENDPOINT
+            endpoint: KEYRING_ZMQ_ENDPOINT
                 .parse()
-                .expect("Broken FUNGIBLED_RPC_ENDPOINT value"),
+                .expect("Broken KEYRING_ZMQ_ENDPOINT value"),
         }
     }
 }
