@@ -32,7 +32,7 @@ pub struct Runtime {
     session_rpc: Session<NoEncryption, transport::zmq::Connection>,
 
     /// Secure key vault
-    vault: Arc<dyn Vault>,
+    vault: Arc<dyn Vault<Error = RuntimeError>>,
 
     /// Unmarshaller instance used for parsing RPC request
     unmarshaller: Unmarshaller<Request>,
