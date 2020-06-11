@@ -25,6 +25,8 @@ extern crate clap;
 #[macro_use]
 extern crate log;
 #[macro_use]
+extern crate num_derive;
+#[macro_use]
 extern crate lnpbp;
 #[macro_use]
 extern crate lnpbp_derive;

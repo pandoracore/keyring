@@ -5,8 +5,6 @@ log = "verbose"
 
 [vault]
 driver = "file"
-
-[vault.file]
 location = "{data_dir}/vault.yaml"
 format = "YAML"
 

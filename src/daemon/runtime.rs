@@ -51,7 +51,7 @@ impl Runtime {
         )?;
 
         let vault = Vault::new(driver::Config::File(file_driver::Config {
-            filename: Default::default(),
+            location: Default::default(),
             format: file_driver::FileFormat::StrictEncoded,
         }));
 

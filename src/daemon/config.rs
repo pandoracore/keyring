@@ -23,6 +23,7 @@ use ::std::path::PathBuf;
 use ::std::process::exit;
 use clap::derive::ArgEnum;
 use clap::Clap;
+use num_traits::{FromPrimitive, ToPrimitive};
 
 use lnpbp::bitcoin::secp256k1;
 use lnpbp::bp;
@@ -57,7 +58,7 @@ pub struct Opts {
 
     /// Data directory path
     #[clap(short, long, env = "KEYRING_DATA_DIR")]
-    pub data_dir: Option<PathBuf>,
+    pub data_dir: Option<String>,
 
     /// ZMQ socket address string for RPC API
     #[clap(long = "zmq", env = "KEYRING_ZMQ_ENDPOINT")]
@@ -71,19 +72,35 @@ pub struct Opts {
 #[derive(Clone, PartialEq, Eq, Debug, Display, Serialize, Deserialize)]
 #[display_from(Debug)]
 pub struct Config {
+    #[serde(with = "serde_with::rust::display_fromstr")]
     pub node_key: secp256k1::SecretKey,
-    pub data_dir: PathBuf,
-    pub verbose: u8,
+    pub data_dir: String,
+    pub log_level: LogLevel,
+    #[serde(with = "serde_with::rust::display_fromstr")]
     pub zmq_endpoint: SocketLocator,
     pub tcp_endpoint: SocketAddr,
     pub vault: vault::driver::Config,
+}
+
+#[derive(
+    Copy, Clone, PartialEq, Eq, Debug, Display, Serialize, Deserialize, FromPrimitive, ToPrimitive,
+)]
+#[display_from(Debug)]
+pub enum LogLevel {
+    Error = 0,
+    Warn,
+    Info,
+    Debug,
+    Trace,
 }
 
 impl TryFrom<Opts> for Config {
     type Error = ConfigError;
 
     fn try_from(opts: Opts) -> Result<Self, Self::Error> {
-        setup_verbose(opts.verbose);
+        let log_level = LogLevel::from_u8(opts.verbose).unwrap_or(LogLevel::Trace);
+
+        setup_verbose(log_level);
         debug!("Verbosity level set to {}", opts.verbose);
 
         let mut proto = Self::default();
@@ -92,44 +109,49 @@ impl TryFrom<Opts> for Config {
         }
 
         let conf_file: String = proto.parse_param(opts.config);
-        if opts.init {
-            if let Err(err) = init_config(&conf_file, proto) {
-                error!("Error during config file creation: {}", err);
-                eprintln!("Unable to create configuration file {}: {}", conf_file, err);
-                exit(1);
-            }
-            exit(0);
-        }
-
-        debug!("Reading config file {}", conf_file);
-        let mut s = Settings::new();
-        match s.merge(settings::File::with_name(&conf_file)) {
-            Ok(_) => {}
-            Err(ConfigError::Foreign(err)) => {
-                error!("{}", ConfigError::Foreign(err));
-                eprintln!(
-                    "Config file {} not found: please either specify a correct \
+        let mut me = if !opts.init {
+            debug!("Reading config file {}", conf_file);
+            let mut s = Settings::new();
+            match s.merge(settings::File::with_name(&conf_file)) {
+                Ok(_) => {}
+                Err(ConfigError::Foreign(err)) => {
+                    error!("{}", ConfigError::Foreign(err));
+                    eprintln!(
+                        "Config file {} not found: please either specify a correct \
                      configuration file path with `--config` argument or \
                      init default config parameters with `--init`",
-                    conf_file
-                );
-                exit(1);
+                        conf_file
+                    );
+                    exit(1);
+                }
+                Err(err) => Err(err)?,
             }
-            Err(err) => Err(err)?,
-        }
-        trace!("Config file read; applying read config");
-        let mut me: Self = s.try_into()?;
+            trace!("Config file read; applying read config");
+
+            s.try_into()?
+        } else {
+            Self::default()
+        };
 
         trace!("Applying command-line arguments & environment");
         me.data_dir = proto.data_dir;
         if opts.verbose > 0 {
-            me.verbose = opts.verbose
+            me.log_level = log_level
         }
         if let Some(tcp_endpoint) = opts.tcp_endpoint {
             me.tcp_endpoint = me.parse_param(tcp_endpoint)
         }
         if let Some(zmq_endpoint) = opts.zmq_endpoint {
             me.zmq_endpoint = me.parse_param(zmq_endpoint)
+        }
+
+        if opts.init {
+            if let Err(err) = init_config(&conf_file, me) {
+                error!("Error during config file creation: {}", err);
+                eprintln!("Unable to create configuration file {}: {}", conf_file, err);
+                exit(1);
+            }
+            exit(0);
         }
 
         debug!("Configuration init succeeded");
@@ -147,7 +169,7 @@ impl Default for Config {
             data_dir: KEYRING_DATA_DIR
                 .parse()
                 .expect("Error in KEYRING_DATA_DIR constant value"),
-            verbose: 0,
+            log_level: LogLevel::Warn,
             zmq_endpoint: KEYRING_ZMQ_ENDPOINT
                 .parse()
                 .expect("Error in KEYRING_ZMQ_ENDPOINT constant value"),
@@ -155,7 +177,7 @@ impl Default for Config {
                 .parse()
                 .expect("Error in KEYRING_TCP_ENDPOINT constant value"),
             vault: vault::driver::Config::File(vault::file_driver::Config {
-                filename: KEYRING_VAULT_FILE
+                location: KEYRING_VAULT_FILE
                     .parse()
                     .expect("Error in KEYRING_VAULT_FILE constant value"),
                 format: KEYRING_VAULT_FORMAT,
@@ -165,9 +187,7 @@ impl Default for Config {
 }
 
 impl Config {
-    pub fn apply(&self) {
-        setup_verbose(self.verbose);
-    }
+    pub fn apply(&self) {}
 
     pub fn parse_param<T>(&self, param: String) -> T
     where
@@ -176,7 +196,7 @@ impl Config {
     {
         param
             .replace("{id}", "default")
-            .replace("{data_dir}", self.data_dir.to_str().unwrap())
+            .replace("{data_dir}", &self.data_dir)
             .replace("{node_id}", &self.node_id().to_string())
             .parse()
             .unwrap_or_else(|err| panic!("Error parsing parameter `{}`: {}", param, err))
@@ -188,17 +208,16 @@ impl Config {
     }
 }
 
-fn setup_verbose(verbose: u8) {
+fn setup_verbose(verbose: LogLevel) {
     if env::var("RUST_LOG").is_err() {
         env::set_var(
             "RUST_LOG",
             match verbose {
-                0 => "error",
-                1 => "warn",
-                2 => "info",
-                3 => "debug",
-                4 => "trace",
-                _ => "trace",
+                LogLevel::Error => "error",
+                LogLevel::Warn => "warn",
+                LogLevel::Info => "info",
+                LogLevel::Debug => "debug",
+                LogLevel::Trace => "trace",
             },
         );
     }
