@@ -20,12 +20,12 @@ use ::std::io;
 use ::std::path::Path;
 
 use lnpbp::bitcoin::XpubIdentifier;
-use lnpbp::strict_encoding::StrictDecode;
+use lnpbp::strict_encoding::{StrictDecode, StrictEncode};
 
 use super::{driver, Account, Driver};
 use crate::error::{BootstrapError, RuntimeError};
 use crate::Vault;
-use std::io::{Read, Seek};
+use std::io::{Read, Seek, Write};
 
 #[derive(Debug, Display)]
 #[display_from(Debug)]
@@ -72,6 +72,9 @@ impl Driver for FileDriver {
         };
         if exists {
             me.load()?;
+        } else {
+            warn!("Vault file does not exist: initializing empty vault");
+            me.store(&vec![])?;
         }
         Ok(me)
     }
@@ -79,9 +82,7 @@ impl Driver for FileDriver {
     fn load(&mut self) -> Result<Vec<Account>, driver::Error> {
         debug!("Loading vault from {}", self.config.location);
         let mut data: Vec<u8> = vec![];
-        self.fd
-            .seek(io::SeekFrom::Start(0))
-            .map_err(|err| RuntimeError::VaultDriver(format!("{}", err)))?;
+        self.fd.seek(io::SeekFrom::Start(0))?;
         trace!(
             "Parsing vault data (expected format {})",
             self.config.format
@@ -100,7 +101,29 @@ impl Driver for FileDriver {
         Ok(accounts)
     }
 
-    fn store(&mut self, accounts: &Vec<Account>) -> Result<bool, driver::Error> {
-        unimplemented!()
+    fn store(&mut self, accounts: &Vec<Account>) -> Result<(), driver::Error> {
+        debug!(
+            "Storing vault data to the file {} in {} format",
+            self.config.location, self.config.format
+        );
+        trace!("Current vault data: {:?}", accounts);
+        self.fd.seek(io::SeekFrom::Start(0))?;
+        match self.config.format {
+            FileFormat::StrictEncoded => {
+                accounts.strict_encode(&mut self.fd)?;
+            }
+            FileFormat::Yaml => {
+                serde_yaml::to_writer(&mut self.fd, accounts)?;
+            }
+            FileFormat::Toml => {
+                let data = toml::to_vec(accounts)?;
+                self.fd.write_all(&data)?;
+            }
+            FileFormat::Json => {
+                serde_json::to_writer(&mut self.fd, accounts)?;
+            }
+        };
+        trace!("Data stored");
+        Ok(())
     }
 }

@@ -24,7 +24,7 @@ pub trait Driver: Send + Sync {
     where
         Self: Sized;
     fn load(&mut self) -> Result<Vec<Account>, Error>;
-    fn store(&mut self, accounts: &Vec<Account>) -> Result<bool, Error>;
+    fn store(&mut self, accounts: &Vec<Account>) -> Result<(), Error>;
 }
 
 #[derive(Clone, PartialEq, Eq, Debug, Display, Serialize, Deserialize)]
