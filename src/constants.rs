@@ -11,17 +11,24 @@
 // along with this software.
 // If not, see <https://www.gnu.org/licenses/agpl-3.0-standalone.html>.
 
+#[cfg(feature = "daemon")]
 use crate::vault::file_driver::FileFormat;
 
+#[cfg(feature = "daemon")]
 pub const KEYRING_CONFIG: &'static str = "{data_dir}/keyringd.toml";
 pub const KEYRING_DATA_DIR: &'static str = "/var/lib/keyring";
 pub const KEYRING_ZMQ_ENDPOINT: &'static str = "ipc:{data_dir}/zmq.rpc";
+#[cfg(feature = "daemon")]
 pub const KEYRING_TCP_ENDPOINT: &'static str = "0.0.0.0:20202";
+#[cfg(feature = "daemon")]
 pub const KEYRING_VAULT_FORMAT: FileFormat = FileFormat::Yaml;
+#[cfg(feature = "daemon")]
 pub const KEYRING_VAULT_FILE: &'static str = "vault.yaml";
 
+#[cfg(feature = "daemon")]
 use lnpbp::bitcoin::secp256k1::{self, Secp256k1};
 
+#[cfg(feature = "daemon")]
 lazy_static! {
     /// Global Secp context
     pub static ref SECP256K1: Secp256k1<secp256k1::All> = Secp256k1::new();

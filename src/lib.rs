@@ -14,6 +14,7 @@
 #![feature(never_type)]
 #![feature(with_options)]
 
+#[cfg(feature = "server")]
 #[macro_use]
 extern crate async_trait;
 #[macro_use]
@@ -22,8 +23,10 @@ extern crate lazy_static;
 extern crate derive_wrapper;
 #[macro_use]
 extern crate serde;
+#[cfg(feature = "server")]
 #[macro_use]
 extern crate clap;
+#[cfg(feature = "server")]
 #[macro_use]
 extern crate log;
 #[macro_use]
@@ -32,14 +35,19 @@ extern crate num_derive;
 extern crate lnpbp;
 #[macro_use]
 extern crate lnpbp_derive;
+#[cfg(feature = "server")]
 extern crate settings;
 
 pub(crate) mod api;
+#[cfg(feature = "cli")]
 pub mod cli;
 mod constants;
+#[cfg(feature = "daemon")]
 pub mod daemon;
 pub mod error;
+#[cfg(feature = "daemon")]
 pub(crate) mod vault;
 
 pub use constants::*;
+#[cfg(feature = "daemon")]
 pub use vault::Vault;

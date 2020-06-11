@@ -1,5 +1,8 @@
 # Keyring backend by Pandora Core
 
+[![TravisCI](https://api.travis-ci.com/pandoracore/keyring.svg?branch=master)](https://api.travis-ci.com/pandoracore/keyring)
+[![codecov](https://codecov.io/gh/pandoracore/keyring/branch/master/graph/badge.svg)](https://codecov.io/gh/pandoracore/keyring)
+
 Backend for private keys management and signatures
 
 Usage:

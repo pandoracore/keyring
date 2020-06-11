@@ -24,6 +24,7 @@ use lnpbp::Wrapper;
 
 use super::message;
 use super::types::*;
+#[cfg(feature = "server")]
 use crate::error::RuntimeError;
 
 #[derive(Clone, Debug, Display)]
@@ -112,6 +113,7 @@ impl From<Error> for Reply {
     }
 }
 
+#[cfg(feature = "server")]
 impl From<RuntimeError> for Reply {
     fn from(err: RuntimeError) -> Self {
         // TODO: Save error code taken from `Error::to_value()` after

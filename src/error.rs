@@ -12,13 +12,17 @@
 // If not, see <https://www.gnu.org/licenses/agpl-3.0-standalone.html>.
 
 use ::std::io;
+#[cfg(feature = "daemon")]
 use settings::ConfigError;
+#[cfg(feature = "daemon")]
 use tokio::task::JoinError;
 
 use lnpbp::lnp;
 
+#[cfg(feature = "daemon")]
 use crate::vault;
 
+#[cfg(feature = "daemon")]
 #[derive(Debug, Display, Error, From)]
 #[display_from(Debug)]
 pub enum ConfigInitError {
@@ -29,9 +33,11 @@ pub enum ConfigInitError {
     Toml(toml::ser::Error),
 }
 
+#[cfg(feature = "server")]
 #[derive(Debug, Display, Error, From)]
 #[display_from(Debug)]
 pub enum BootstrapError {
+    #[cfg(feature = "daemon")]
     #[derive_from]
     ConfigError(ConfigError),
 
@@ -46,9 +52,11 @@ pub enum BootstrapError {
     #[derive_from]
     ZmqSocketError(zmq::Error),
 
+    #[cfg(feature = "daemon")]
     #[derive_from]
     MultithreadError(JoinError),
 
+    #[cfg(feature = "monitoring")]
     MonitorSocketError(Box<dyn std::error::Error + Send>),
 
     #[derive_from]
@@ -57,23 +65,27 @@ pub enum BootstrapError {
     #[derive_from]
     VaultError(vault::driver::Error),
 
+    #[cfg(feature = "daemon")]
     ConfigInitError,
 
     Other,
 }
 
+#[cfg(feature = "server")]
 impl From<BootstrapError> for String {
     fn from(err: BootstrapError) -> Self {
         format!("{}", err)
     }
 }
 
+#[cfg(feature = "server")]
 impl From<&str> for BootstrapError {
     fn from(err: &str) -> Self {
         BootstrapError::ArgParseError(err.to_string())
     }
 }
 
+#[cfg(feature = "server")]
 #[derive(Debug, Display, Error, From)]
 #[display_from(Debug)]
 pub enum RuntimeError {
@@ -83,6 +95,7 @@ pub enum RuntimeError {
     #[derive_from(lnp::presentation::Error)]
     Message,
 
+    #[cfg(feature = "daemon")]
     #[derive_from]
     VaultDriver(vault::driver::Error),
 }
