@@ -81,15 +81,23 @@ impl TryService for Runtime {
 
 impl Runtime {
     async fn run(&mut self) -> Result<(), RuntimeError> {
+        trace!("Awaiting for ZMQ RPC requests...");
         let raw = self.session_rpc.recv_raw_message()?;
         let reply = self.rpc_process(raw).await.unwrap_or_else(|err| err);
+        trace!("Preparing ZMQ RPC reply: {:?}", reply);
         let data = reply.encode()?;
+        trace!(
+            "Sending {} bytes back to the client over ZMQ RPC",
+            data.len()
+        );
         self.session_rpc.send_raw_message(data)?;
         Ok(())
     }
 
     async fn rpc_process(&mut self, raw: Vec<u8>) -> Result<Reply, Reply> {
+        trace!("Got {} bytes over ZMQ RPC, parsing", raw.len());
         let message = &*self.unmarshaller.unmarshall(&raw)?;
+        debug!("Received ZMQ RPC request: {:?}", message);
         match message {
             Request::Seed(auth) => self.rpc_seed_create(*auth).await,
             _ => unimplemented!(),
@@ -97,7 +105,9 @@ impl Runtime {
     }
 
     async fn rpc_seed_create(&mut self, auth: AuthCode) -> Result<Reply, Reply> {
+        trace!("Awaiting for the vault lock");
         self.vault.lock().await.seed()?;
+        trace!("Vault lock released");
         Ok(Reply::Success)
     }
 }

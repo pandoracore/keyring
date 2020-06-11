@@ -15,6 +15,8 @@ use lnpbp::bitcoin::util::bip32::{DerivationPath, Fingerprint};
 use lnpbp::service::Exec;
 
 use super::{Error, Runtime};
+use crate::api;
+use crate::api::Reply;
 
 /// Command-line commands:
 ///
@@ -174,7 +176,16 @@ impl Command {
 
 impl SeedCommand {
     pub fn exec_create(&self, runtime: &mut Runtime) -> Result<(), Error> {
-        unimplemented!()
+        debug!("Creating new seed");
+        let reply = runtime.request(api::Request::Seed(0))?;
+        match reply.as_ref() {
+            Reply::Success => {
+                info!("New seed created");
+                Ok(())
+            }
+            Reply::Failure(failure) => Err(Error::ServerFailure(failure.clone())),
+            _ => Err(Error::UnexpectedServerResponse),
+        }
     }
 
     pub fn exec_import(

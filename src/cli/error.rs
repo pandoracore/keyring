@@ -11,6 +11,20 @@
 // along with this software.
 // If not, see <https://www.gnu.org/licenses/agpl-3.0-standalone.html>.
 
-#[derive(Clone, PartialEq, Eq, Debug, Display, Error, From)]
+use crate::api::message::Failure;
+use lnpbp::lnp;
+
+#[derive(Clone, Debug, Display, Error, From)]
 #[display_from(Debug)]
-pub enum Error {}
+pub enum Error {
+    UnexpectedServerResponse,
+
+    #[derive_from]
+    ServerFailure(Failure),
+
+    #[derive_from]
+    PresentationError(lnp::presentation::Error),
+
+    #[derive_from]
+    TransportError(lnp::transport::Error),
+}

@@ -83,5 +83,6 @@ pub enum RuntimeError {
     #[derive_from(lnp::presentation::Error)]
     Message,
 
-    VaultDriver(String),
+    #[derive_from]
+    VaultDriver(vault::driver::Error),
 }

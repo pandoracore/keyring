@@ -43,7 +43,10 @@ impl Vault {
     }
 
     pub fn seed(&mut self) -> Result<(), RuntimeError> {
-        unimplemented!()
+        let account = Account::new();
+        self.accounts.push(account);
+        self.driver.store(&self.accounts)?;
+        Ok(())
     }
 
     pub fn derive(

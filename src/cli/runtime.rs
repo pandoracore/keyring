@@ -14,7 +14,7 @@
 use std::io;
 use std::sync::Arc;
 
-use lnpbp::lnp::presentation::{Encode, Error as LnpError};
+use lnpbp::lnp::presentation::Encode;
 use lnpbp::lnp::transport::zmq::ApiType;
 use lnpbp::lnp::{transport, NoEncryption, Session, Unmarshall, Unmarshaller};
 
@@ -31,6 +31,8 @@ pub struct Runtime {
 
 impl Runtime {
     pub async fn init(config: Config) -> Result<Self, BootstrapError> {
+        debug!("Initializing runtime");
+        trace!("Connecting to keyring daemon at {}", config.endpoint);
         let mut context = zmq::Context::new();
         let session_rpc = Session::new_zmq_unencrypted(
             ApiType::Client,
@@ -46,14 +48,15 @@ impl Runtime {
         })
     }
 
-    fn request(&mut self, request: Request) -> Result<Arc<Reply>, LnpError> {
-        unimplemented!()
-        /*
+    pub fn request(&mut self, request: Request) -> Result<Arc<Reply>, Error> {
+        trace!("Sending request to the server: {:?}", request);
         let data = request.encode()?;
         self.session_rpc.send_raw_message(data)?;
+        trace!("Awaiting reply");
         let raw = self.session_rpc.recv_raw_message()?;
+        trace!("Got reply ({} bytes), parsing", raw.len());
         let reply = self.unmarshaller.unmarshall(&raw)?;
+        trace!("Reply: {:?}", reply);
         Ok(reply)
-         */
     }
 }

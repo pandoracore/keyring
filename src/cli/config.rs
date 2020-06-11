@@ -30,19 +30,12 @@ use crate::constants::KEYRING_ZMQ_ENDPOINT;
 )]
 pub struct Opts {
     /// Sets verbosity level; can be used multiple times to increase verbosity
-    #[clap(
-        global = true,
-        short = "v",
-        long = "verbose",
-        min_values = 0,
-        max_values = 4,
-        parse(from_occurrences)
-    )]
+    #[clap(short, long, global = true, parse(from_occurrences))]
     pub verbose: u8,
 
     /// RPC endpoint of keyring daemon
     #[clap(short, long, default_value = KEYRING_ZMQ_ENDPOINT)]
-    pub endpoint: String,
+    pub connect: String,
 
     /// Command to execute
     #[clap(subcommand)]
@@ -55,16 +48,14 @@ pub struct Opts {
 #[derive(Clone, PartialEq, Eq, Debug, Display)]
 #[display_from(Debug)]
 pub struct Config {
-    pub verbose: u8,
     pub endpoint: SocketLocator,
 }
 
 impl From<Opts> for Config {
     fn from(opts: Opts) -> Self {
         Self {
-            verbose: opts.verbose,
-            endpoint: opts.endpoint.parse().unwrap_or_else(|err| {
-                panic!("Error parsing parameter `{}`: {}", opts.endpoint, err)
+            endpoint: opts.connect.parse().unwrap_or_else(|err| {
+                panic!("Error parsing parameter `{}`: {}", opts.connect, err)
             }),
             ..Config::default()
         }
@@ -74,7 +65,6 @@ impl From<Opts> for Config {
 impl Default for Config {
     fn default() -> Self {
         Self {
-            verbose: 0,
             endpoint: KEYRING_ZMQ_ENDPOINT
                 .parse()
                 .expect("Broken KEYRING_ZMQ_ENDPOINT value"),

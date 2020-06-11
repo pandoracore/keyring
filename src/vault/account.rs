@@ -33,3 +33,9 @@ pub struct Account {
     details: String,
     derivation: Option<DerivationPath>,
 }
+
+impl Account {
+    pub fn new() -> Self {
+        unimplemented!()
+    }
+}
