@@ -1,5 +1,5 @@
 # Default keyring daemon configuration file
-[generic]
+
 data_dir = "./data"
 log = "verbose"
 
@@ -7,7 +7,8 @@ log = "verbose"
 driver = "file"
 
 [vault.file]
-location = "{data_dir}/vault.dat"
+location = "{data_dir}/vault.yaml"
+format = "YAML"
 
 [client.cli]
 connect = "ipc"
@@ -17,6 +18,8 @@ second_auth_seed = ""
 [client.user1]
 connect = "all"
 keys = [ "" ]
+semilock = ""
+halfunlock = ""
 nodes = [ ]
 allow = [ "seed", "read", "derive", "sign" ]
 second_auth_seed = ""

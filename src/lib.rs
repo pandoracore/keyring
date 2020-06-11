@@ -12,11 +12,14 @@
 // If not, see <https://www.gnu.org/licenses/agpl-3.0-standalone.html>.
 
 #![feature(never_type)]
+#![feature(with_options)]
 
 #[macro_use]
 extern crate async_trait;
 #[macro_use]
 extern crate derive_wrapper;
+#[macro_use]
+extern crate serde;
 #[macro_use]
 extern crate clap;
 #[macro_use]
@@ -25,6 +28,7 @@ extern crate log;
 extern crate lnpbp;
 #[macro_use]
 extern crate lnpbp_derive;
+extern crate settings;
 
 pub(crate) mod api;
 pub mod cli;

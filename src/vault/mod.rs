@@ -13,8 +13,10 @@
 
 //! Storage drivers for private key vault
 
-mod file;
+pub mod driver;
+pub mod file_driver;
 mod vaults;
 
-pub use file::FileVault;
-pub use vaults::{UnlockedVault, Vault};
+pub use driver::Driver;
+pub use file_driver::FileDriver;
+pub use vaults::{Keyring, Vault};

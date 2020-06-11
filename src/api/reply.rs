@@ -24,6 +24,7 @@ use lnpbp::Wrapper;
 
 use super::message;
 use super::types::*;
+use crate::error::RuntimeError;
 
 #[derive(Clone, Debug, Display)]
 #[display_from(Debug)]
@@ -95,6 +96,17 @@ impl Reply {
 
 impl From<Error> for Reply {
     fn from(err: Error) -> Self {
+        // TODO: Save error code taken from `Error::to_value()` after
+        //       implementation of `ToValue` trait and derive macro for enums
+        Reply::Failure(message::Failure {
+            code: 0,
+            info: format!("{}", err),
+        })
+    }
+}
+
+impl From<RuntimeError> for Reply {
+    fn from(err: RuntimeError) -> Self {
         // TODO: Save error code taken from `Error::to_value()` after
         //       implementation of `ToValue` trait and derive macro for enums
         Reply::Failure(message::Failure {

@@ -11,35 +11,62 @@
 // along with this software.
 // If not, see <https://www.gnu.org/licenses/agpl-3.0-standalone.html>.
 
-//! Storage drivers for private key vault
-
 use lnpbp::bitcoin::hash_types::XpubIdentifier;
+use lnpbp::bitcoin::secp256k1::SecretKey;
 use lnpbp::bitcoin::util::bip32::{DerivationPath, ExtendedPrivKey, ExtendedPubKey, Fingerprint};
 use lnpbp::bitcoin::util::psbt::PartiallySignedTransaction;
 
+use super::driver;
 use crate::api::types::Key;
 use crate::error::RuntimeError;
 
-pub trait Vault: Send + Sync {
-    type Error: ::std::error::Error + Into<RuntimeError>;
-
-    fn open_or_create<T>(config: T) -> Result<Self, Self::Error>
-    where
-        Self: Sized;
-
-    fn list(&self, root: Option<XpubIdentifier>) -> Result<Vec<Key>, Self::Error>;
-    fn seed(&mut self) -> Result<(), Self::Error>;
-    fn derive(&mut self, root: XpubIdentifier, path: DerivationPath) -> Result<Key, Self::Error>;
-    fn xpub(&self, id: XpubIdentifier) -> Result<ExtendedPubKey, Self::Error>;
-
-    fn unlock(&self, password: &mut str) -> Result<UnlockedVault, Self::Error>;
+pub struct Vault {
+    keyrings: Vec<Keyring>,
 }
 
-pub struct UnlockedVault {
+impl Vault {
+    pub fn new(config: driver::Config) -> Self {
+        unimplemented!()
+    }
+
+    pub fn list(&self, root: Option<XpubIdentifier>) -> Result<Vec<Key>, RuntimeError> {
+        unimplemented!()
+    }
+
+    pub fn seed(&mut self) -> Result<(), RuntimeError> {
+        unimplemented!()
+    }
+
+    pub fn derive(
+        &mut self,
+        root: XpubIdentifier,
+        path: DerivationPath,
+    ) -> Result<Key, RuntimeError> {
+        unimplemented!()
+    }
+
+    pub fn xpub(&self, id: XpubIdentifier) -> Result<ExtendedPubKey, RuntimeError> {
+        unimplemented!()
+    }
+
+    pub fn lock(&self) {
+        unimplemented!()
+    }
+
+    pub fn unlock(
+        &self,
+        id: XpubIdentifier,
+        unlock: &mut SecretKey,
+    ) -> Result<Keyring, RuntimeError> {
+        unimplemented!()
+    }
+}
+
+pub struct Keyring {
     xprivkey: ExtendedPrivKey,
 }
 
-impl UnlockedVault {
+impl Keyring {
     pub fn xpriv(&self, id: XpubIdentifier) -> Result<ExtendedPrivKey, RuntimeError> {
         unimplemented!()
     }

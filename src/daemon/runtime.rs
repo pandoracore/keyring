@@ -13,6 +13,7 @@
 
 use clap::derive::Clap;
 use std::sync::Arc;
+use tokio::sync::Mutex;
 
 use lnpbp::lnp::presentation::Encode;
 use lnpbp::lnp::zmq::ApiType;
@@ -22,7 +23,7 @@ use lnpbp::TryService;
 use super::Config;
 use crate::api::{types::AuthCode, Reply, Request};
 use crate::error::{BootstrapError, RuntimeError};
-use crate::{vault::FileVault, Vault};
+use crate::{vault, vault::driver, vault::file_driver, Vault};
 
 pub struct Runtime {
     /// Original configuration object
@@ -32,7 +33,7 @@ pub struct Runtime {
     session_rpc: Session<NoEncryption, transport::zmq::Connection>,
 
     /// Secure key vault
-    vault: Arc<dyn Vault<Error = RuntimeError>>,
+    vault: Arc<Mutex<Vault>>,
 
     /// Unmarshaller instance used for parsing RPC request
     unmarshaller: Unmarshaller<Request>,
@@ -49,10 +50,15 @@ impl Runtime {
             None,
         )?;
 
+        let vault = Vault::new(driver::Config::File(file_driver::Config {
+            filename: Default::default(),
+            format: file_driver::FileFormat::StrictEncoded,
+        }));
+
         Ok(Self {
             config,
             session_rpc,
-            vault: Arc::new(FileVault {}),
+            vault: Arc::new(Mutex::new(vault)),
             unmarshaller: Request::create_unmarshaller(),
         })
     }
@@ -93,6 +99,7 @@ impl Runtime {
     }
 
     async fn rpc_seed_create(&mut self, auth: AuthCode) -> Result<Reply, Reply> {
+        self.vault.lock().await.seed()?;
         Ok(Reply::Success)
     }
 }

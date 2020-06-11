@@ -11,14 +11,28 @@
 // along with this software.
 // If not, see <https://www.gnu.org/licenses/agpl-3.0-standalone.html>.
 
-use std::io;
+use ::std::io;
+use settings::ConfigError;
 use tokio::task::JoinError;
 
 use lnpbp::lnp;
 
 #[derive(Debug, Display, Error, From)]
 #[display_from(Debug)]
+pub enum ConfigInitError {
+    #[derive_from]
+    IoError(io::Error),
+
+    #[derive_from]
+    Toml(toml::ser::Error),
+}
+
+#[derive(Debug, Display, Error, From)]
+#[display_from(Debug)]
 pub enum BootstrapError {
+    #[derive_from]
+    ConfigError(ConfigError),
+
     TorNotYetSupported,
 
     #[derive_from]
@@ -39,6 +53,8 @@ pub enum BootstrapError {
     TransportError(lnp::transport::Error),
 
     StorageError,
+
+    ConfigInitError,
 
     Other,
 }

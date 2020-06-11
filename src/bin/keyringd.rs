@@ -13,37 +13,51 @@
 
 //! Main daemon file
 
+#[macro_use]
+extern crate log;
+
+use ::core::convert::TryInto;
+use ::std::fs::File;
+use ::std::io::Write;
 use clap::derive::Clap;
-use log::LevelFilter;
-use std::env;
 
 use lnpbp::TryService;
 
 use keyring::daemon::{Config, Opts, Runtime};
-use keyring::error::BootstrapError;
+use keyring::error::{BootstrapError, ConfigInitError};
 
 #[tokio::main]
 async fn main() -> Result<(), BootstrapError> {
-    // TODO: Move on configure_me
     let opts: Opts = Opts::parse();
-    let config: Config = opts.into();
+    let config: Config = opts.clone().try_into()?;
+    config.apply();
 
-    if env::var("RUST_LOG").is_err() {
-        env::set_var(
-            "RUST_LOG",
-            match config.verbose {
-                0 => "error",
-                1 => "warn",
-                2 => "info",
-                3 => "debug",
-                4 => "trace",
-                _ => "trace",
-            },
-        );
+    info!("keyringd: private/public key managing service");
+
+    if opts.init {
+        if let Err(err) = init_config(opts, config) {
+            error!("Error during config file creation: {}", err);
+            return Err(BootstrapError::ConfigInitError);
+        }
+        return Ok(());
     }
-    env_logger::init();
-    log::set_max_level(LevelFilter::Trace);
 
     let runtime = Runtime::init(config).await?;
-    runtime.run_or_panic("RGBd runtime").await
+    runtime.run_or_panic("keyringd runtime").await
+}
+
+fn init_config(opts: Opts, config: Config) -> Result<(), ConfigInitError> {
+    info!("Initializing config file at {}", opts.config);
+
+    let conf_str = toml::to_string(&config)?;
+    trace!("Serialized config:\n\n{}", conf_str);
+
+    trace!("Creating config file");
+    let mut conf_fd = File::create(opts.config)?;
+
+    trace!("Writing config to the file");
+    conf_fd.write(conf_str.as_bytes())?;
+
+    debug!("Config file successfully created");
+    return Ok(());
 }
