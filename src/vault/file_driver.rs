@@ -16,7 +16,6 @@
 use ::core::any::Any;
 use ::std::collections::BTreeMap;
 use ::std::fs;
-use ::std::path::PathBuf;
 
 use lnpbp::bitcoin::XpubIdentifier;
 
@@ -34,7 +33,7 @@ pub struct FileDriver {
 #[derive(Clone, PartialEq, Eq, Hash, Debug, Display, Serialize, Deserialize)]
 #[display_from(Debug)]
 pub struct Config {
-    pub location: PathBuf,
+    pub location: String,
     pub format: FileFormat,
 }
 
@@ -49,8 +48,6 @@ pub enum FileFormat {
 }
 
 impl Driver for FileDriver {
-    type Error = RuntimeError;
-
     fn init(config: &dyn Any) -> Result<Self, BootstrapError> {
         let config = config
             .downcast_ref::<Config>()
@@ -63,15 +60,15 @@ impl Driver for FileDriver {
         Ok(Self { fd })
     }
 
-    fn index(&self) -> Result<Vec<XpubIdentifier>, Self::Error> {
+    fn index(&self) -> Result<Vec<XpubIdentifier>, RuntimeError> {
         unimplemented!()
     }
 
-    fn load(&self, id: XpubIdentifier) -> Result<Vault, Self::Error> {
+    fn load(&self, id: XpubIdentifier) -> Result<Vault, RuntimeError> {
         unimplemented!()
     }
 
-    fn store(&mut self, vault: &Vault) -> Result<bool, Self::Error> {
+    fn store(&mut self, vault: &Vault) -> Result<bool, RuntimeError> {
         unimplemented!()
     }
 }

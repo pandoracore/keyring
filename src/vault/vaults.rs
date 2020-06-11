@@ -16,17 +16,24 @@ use lnpbp::bitcoin::secp256k1::SecretKey;
 use lnpbp::bitcoin::util::bip32::{DerivationPath, ExtendedPrivKey, ExtendedPubKey, Fingerprint};
 use lnpbp::bitcoin::util::psbt::PartiallySignedTransaction;
 
-use super::driver;
+use super::{driver, file_driver, Driver, FileDriver};
 use crate::api::types::Key;
-use crate::error::RuntimeError;
+use crate::error::{BootstrapError, RuntimeError};
 
 pub struct Vault {
     keyrings: Vec<Keyring>,
+    driver: Box<dyn Driver>,
 }
 
 impl Vault {
-    pub fn new(config: driver::Config) -> Self {
-        unimplemented!()
+    pub fn new(config: &driver::Config) -> Result<Self, BootstrapError> {
+        let driver = match config {
+            driver::Config::File(fdc) => FileDriver::init(fdc)?,
+        };
+        Ok(Self {
+            keyrings: vec![],
+            driver: Box::new(driver),
+        })
     }
 
     pub fn list(&self, root: Option<XpubIdentifier>) -> Result<Vec<Key>, RuntimeError> {

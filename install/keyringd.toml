@@ -1,12 +1,15 @@
 # Default keyring daemon configuration file
 
+node_key = "87c00b999b6439e56f893856133fd23d9d78851070051cd2136fa4a555658ae0"
 data_dir = "./data"
-log = "verbose"
+log_level = "Trace"
+zmq_endpoint = "ipc:./data/zmq.rpc"
+tcp_endpoint = "0.0.0.0:20202"
 
 [vault]
-driver = "file"
-location = "{data_dir}/vault.yaml"
-format = "YAML"
+driver = "File"
+location = "vault.yaml"
+format = "Yaml"
 
 [client.cli]
 connect = "ipc"

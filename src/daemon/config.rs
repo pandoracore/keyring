@@ -145,6 +145,10 @@ impl TryFrom<Opts> for Config {
             me.zmq_endpoint = me.parse_param(zmq_endpoint)
         }
 
+        if let vault::driver::Config::File(ref mut fdc) = me.vault {
+            fdc.location = format!("{}/{}", me.data_dir, fdc.location);
+        }
+
         if opts.init {
             if let Err(err) = init_config(&conf_file, me) {
                 error!("Error during config file creation: {}", err);

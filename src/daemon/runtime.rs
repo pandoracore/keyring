@@ -41,19 +41,17 @@ pub struct Runtime {
 
 impl Runtime {
     pub async fn init(config: Config) -> Result<Self, BootstrapError> {
-        let mut context = zmq::Context::new();
+        debug!("Initializing vault {}", config.vault);
+        let vault = Vault::new(&config.vault)?;
 
+        debug!("Opening ZMQ socket {}", config.zmq_endpoint);
+        let mut context = zmq::Context::new();
         let session_rpc = Session::new_zmq_unencrypted(
             ApiType::Server,
             &mut context,
             config.zmq_endpoint.clone(),
             None,
         )?;
-
-        let vault = Vault::new(driver::Config::File(file_driver::Config {
-            location: Default::default(),
-            format: file_driver::FileFormat::StrictEncoded,
-        }));
 
         Ok(Self {
             config,

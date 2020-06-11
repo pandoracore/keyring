@@ -21,14 +21,12 @@ use super::Vault;
 use crate::error::{BootstrapError, RuntimeError};
 
 pub trait Driver: Send + Sync {
-    type Error: ::std::error::Error + Into<RuntimeError>;
-
     fn init(config: &dyn Any) -> Result<Self, BootstrapError>
     where
         Self: Sized;
-    fn index(&self) -> Result<Vec<XpubIdentifier>, Self::Error>;
-    fn load(&self, id: XpubIdentifier) -> Result<Vault, Self::Error>;
-    fn store(&mut self, vault: &Vault) -> Result<bool, Self::Error>;
+    fn index(&self) -> Result<Vec<XpubIdentifier>, RuntimeError>;
+    fn load(&self, id: XpubIdentifier) -> Result<Vault, RuntimeError>;
+    fn store(&mut self, vault: &Vault) -> Result<bool, RuntimeError>;
 }
 
 #[derive(Clone, PartialEq, Eq, Debug, Display, Serialize, Deserialize)]
