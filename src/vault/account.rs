@@ -17,7 +17,8 @@ use serde::{Deserialize, Deserializer, Serializer};
 use lnpbp::bitcoin;
 use lnpbp::bitcoin::hashes::hex::{FromHex, ToHex};
 use lnpbp::bitcoin::secp256k1;
-use lnpbp::bitcoin::util::bip32::{DerivationPath, ExtendedPubKey};
+use lnpbp::bitcoin::util::bip32::{DerivationPath, ExtendedPubKey, Fingerprint};
+use lnpbp::bitcoin::XpubIdentifier;
 use lnpbp::bp;
 use lnpbp::rand::{thread_rng, RngCore};
 
@@ -68,6 +69,14 @@ impl Account {
             details,
             derivation,
         }
+    }
+
+    pub fn id(&self) -> XpubIdentifier {
+        self.xpubkey.identifier()
+    }
+
+    pub fn fingerprint(&self) -> Fingerprint {
+        self.xpubkey.fingerprint()
     }
 }
 

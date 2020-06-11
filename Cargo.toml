@@ -19,6 +19,7 @@ serde_yaml = "~0.8"
 toml = "~0.5"
 settings = { version = "~0.10", package = "config" }
 bech32 = "~0.7"
+base64 = "~0.12"
 log = { version = "~0.4", features = ["max_level_trace", "release_max_level_debug"] }
 async-trait = "~0.1"
 regex = "~1.3"

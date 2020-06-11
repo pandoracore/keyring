@@ -14,24 +14,28 @@
 use lnpbp::bitcoin::hash_types::XpubIdentifier;
 use lnpbp::bitcoin::util::bip32::{DerivationPath, ExtendedPrivKey, ExtendedPubKey, Fingerprint};
 
-pub(super) const MSG_TYPE_SUCCESS: u16 = 0x0001;
-pub(super) const MSG_TYPE_FAILURE: u16 = 0x0000;
-pub(super) const MSG_TYPE_KEYS: u16 = 0x0100;
-pub(super) const MSG_TYPE_KEYLIST: u16 = 0x0101;
-pub(super) const MSG_TYPE_SEED: u16 = 0x0200;
-pub(super) const MSG_TYPE_EXPORT: u16 = 0x0300;
+pub(super) const MSG_TYPE_SUCCESS: u16 = 0x0003;
+pub(super) const MSG_TYPE_FAILURE: u16 = 0x0001;
+pub(super) const MSG_TYPE_LIST: u16 = 0x0101;
+pub(super) const MSG_TYPE_KEYLIST: u16 = 0x0103;
+pub(super) const MSG_TYPE_SEED: u16 = 0x0201;
+pub(super) const MSG_TYPE_EXPORT: u16 = 0x0301;
 pub(super) const MSG_TYPE_XPRIV: u16 = 0x0301;
-pub(super) const MSG_TYPE_XPUB: u16 = 0x0302;
-pub(super) const MSG_TYPE_DERIVE: u16 = 0x0400;
+pub(super) const MSG_TYPE_XPUB: u16 = 0x0303;
+pub(super) const MSG_TYPE_DERIVE: u16 = 0x0401;
 
 pub type AuthCode = u32;
 
-#[derive(Clone, Debug, Display, StrictEncode, StrictDecode)]
+#[derive(
+    Clone, PartialEq, Eq, Debug, Display, StrictEncode, StrictDecode, Serialize, Deserialize,
+)]
 #[display_from(Debug)]
 #[non_exhaustive]
-pub struct Key {
+pub struct AccountInfo {
     pub id: XpubIdentifier,
+    pub name: String,
+    pub details: Option<String>,
     pub xpubkey: ExtendedPubKey,
-    pub path: DerivationPath,
+    pub path: Option<DerivationPath>,
     pub fingerprint: Fingerprint,
 }

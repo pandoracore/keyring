@@ -70,9 +70,7 @@ impl Driver for FileDriver {
             fd,
             config: config.clone(),
         };
-        if exists {
-            me.load()?;
-        } else {
+        if !exists {
             warn!("Vault file does not exist: initializing empty vault");
             me.store(&vec![])?;
         }

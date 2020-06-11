@@ -100,6 +100,7 @@ impl Runtime {
         debug!("Received ZMQ RPC request: {:?}", message);
         match message {
             Request::Seed(seed) => self.rpc_seed_create(seed.clone()).await,
+            Request::List => self.rpc_list().await,
             _ => unimplemented!(),
         }
     }
@@ -112,5 +113,12 @@ impl Runtime {
             .seed(seed.name, seed.description, &self.config.node_id())?;
         trace!("Vault lock released");
         Ok(Reply::Success)
+    }
+
+    async fn rpc_list(&mut self) -> Result<Reply, Reply> {
+        trace!("Awaiting for the vault lock");
+        let accounts = self.vault.lock().await.list()?;
+        trace!("Vault lock released");
+        Ok(Reply::Keylist(accounts))
     }
 }

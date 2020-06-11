@@ -11,8 +11,11 @@
 // along with this software.
 // If not, see <https://www.gnu.org/licenses/agpl-3.0-standalone.html>.
 
-use lnpbp::bitcoin::util::bip32::{DerivationPath, Fingerprint};
+use lnpbp::bitcoin::hashes::hex::{FromHex, ToHex};
+use lnpbp::bitcoin::util::bip32::DerivationPath;
+use lnpbp::bitcoin::XpubIdentifier;
 use lnpbp::service::Exec;
+use lnpbp::strict_encoding::strict_encode;
 
 use super::{Error, Runtime};
 use crate::api;
@@ -74,11 +77,14 @@ pub enum SeedCommand {
     },
 
     Import {
-        fingerprint: Fingerprint,
+        #[clap(parse(try_from_str = FromHex::from_hex))]
+        id: XpubIdentifier,
     },
 
     Export {
-        fingerprint: Fingerprint,
+        #[clap(parse(try_from_str = FromHex::from_hex))]
+        id: XpubIdentifier,
+
         file: String,
     },
 }
@@ -86,15 +92,22 @@ pub enum SeedCommand {
 #[derive(Clap, Clone, Debug, Display)]
 #[display_from(Debug)]
 pub enum XPubkeyCommand {
-    List,
+    List {
+        #[clap(short, long, arg_enum, default_value = "yaml")]
+        format: DataFormat,
+    },
 
     Derive {
-        fingerprint: Fingerprint,
+        #[clap(parse(try_from_str = FromHex::from_hex))]
+        id: XpubIdentifier,
+
         path: DerivationPath,
     },
 
     Export {
-        fingerprint: Fingerprint,
+        #[clap(parse(try_from_str = FromHex::from_hex))]
+        id: XpubIdentifier,
+
         file: String,
     },
 }
@@ -103,9 +116,31 @@ pub enum XPubkeyCommand {
 #[display_from(Debug)]
 pub enum XPrivkeyCommand {
     Export {
-        fingerprint: Fingerprint,
+        #[clap(parse(try_from_str = FromHex::from_hex))]
+        id: XpubIdentifier,
+
         file: String,
     },
+}
+
+#[derive(Clap, Clone, Debug, Display)]
+#[display_from(Debug)]
+#[non_exhaustive]
+pub enum DataFormat {
+    /// JSON
+    Json,
+
+    /// YAML
+    Yaml,
+
+    /// TOML
+    Toml,
+
+    /// Strict encoding - hex representation
+    StrictHex,
+
+    /// Strict encoding - base64 representation
+    StrictBase64,
 }
 
 impl Exec for Command {
@@ -133,10 +168,8 @@ impl Exec for SeedCommand {
             SeedCommand::Create { name, details } => {
                 self.exec_create(runtime, name.clone(), details.clone())
             }
-            SeedCommand::Import { fingerprint } => self.exec_import(runtime, fingerprint),
-            SeedCommand::Export { fingerprint, file } => {
-                self.exec_export(runtime, fingerprint, file)
-            }
+            SeedCommand::Import { id } => self.exec_import(runtime, id),
+            SeedCommand::Export { id, file } => self.exec_export(runtime, id, file),
         }
     }
 }
@@ -148,13 +181,9 @@ impl Exec for XPubkeyCommand {
     #[inline]
     fn exec(&self, runtime: &mut Runtime) -> Result<(), Error> {
         match self {
-            XPubkeyCommand::List => self.exec_list(runtime),
-            XPubkeyCommand::Derive { fingerprint, path } => {
-                self.exec_derive(runtime, fingerprint, path)
-            }
-            XPubkeyCommand::Export { fingerprint, file } => {
-                self.exec_export(runtime, fingerprint, file)
-            }
+            XPubkeyCommand::List { format } => self.exec_list(runtime, format),
+            XPubkeyCommand::Derive { id, path } => self.exec_derive(runtime, id, path),
+            XPubkeyCommand::Export { id, file } => self.exec_export(runtime, id, file),
         }
     }
 }
@@ -166,9 +195,7 @@ impl Exec for XPrivkeyCommand {
     #[inline]
     fn exec(&self, runtime: &mut Runtime) -> Result<(), Error> {
         match self {
-            XPrivkeyCommand::Export { fingerprint, file } => {
-                self.exec_export(runtime, fingerprint, file)
-            }
+            XPrivkeyCommand::Export { id, file } => self.exec_export(runtime, id, file),
         }
     }
 }
@@ -207,18 +234,14 @@ impl SeedCommand {
         }
     }
 
-    pub fn exec_import(
-        &self,
-        runtime: &mut Runtime,
-        fingerprint: &Fingerprint,
-    ) -> Result<(), Error> {
+    pub fn exec_import(&self, runtime: &mut Runtime, id: &XpubIdentifier) -> Result<(), Error> {
         unimplemented!()
     }
 
     pub fn exec_export(
         &self,
         runtime: &mut Runtime,
-        fingerprint: &Fingerprint,
+        id: &XpubIdentifier,
         file: &str,
     ) -> Result<(), Error> {
         unimplemented!()
@@ -226,14 +249,32 @@ impl SeedCommand {
 }
 
 impl XPubkeyCommand {
-    pub fn exec_list(&self, runtime: &mut Runtime) -> Result<(), Error> {
-        unimplemented!()
+    pub fn exec_list(&self, runtime: &mut Runtime, format: &DataFormat) -> Result<(), Error> {
+        const ERR: &'static str = "Error formatting data";
+
+        debug!("Listing known accounts/extended public keys");
+        let reply = runtime.request(api::Request::List)?;
+        match reply.as_ref() {
+            Reply::Keylist(accounts) => {
+                let result = match format {
+                    DataFormat::Json => serde_json::to_string(accounts).expect(ERR),
+                    DataFormat::Yaml => serde_yaml::to_string(accounts).expect(ERR),
+                    DataFormat::Toml => toml::to_string(accounts).expect(ERR),
+                    DataFormat::StrictHex => strict_encode(accounts).expect(ERR).to_hex(),
+                    DataFormat::StrictBase64 => base64::encode(strict_encode(accounts).expect(ERR)),
+                };
+                println!("{}", result);
+                Ok(())
+            }
+            Reply::Failure(failure) => Err(Error::ServerFailure(failure.clone())),
+            _ => Err(Error::UnexpectedServerResponse),
+        }
     }
 
     pub fn exec_derive(
         &self,
         runtime: &mut Runtime,
-        fingerprint: &Fingerprint,
+        id: &XpubIdentifier,
         path: &DerivationPath,
     ) -> Result<(), Error> {
         unimplemented!()
@@ -242,7 +283,7 @@ impl XPubkeyCommand {
     pub fn exec_export(
         &self,
         runtime: &mut Runtime,
-        fingerprint: &Fingerprint,
+        id: &XpubIdentifier,
         file: &str,
     ) -> Result<(), Error> {
         unimplemented!()
@@ -253,7 +294,7 @@ impl XPrivkeyCommand {
     pub fn exec_export(
         &self,
         runtime: &mut Runtime,
-        fingerprint: &Fingerprint,
+        id: &XpubIdentifier,
         file: &str,
     ) -> Result<(), Error> {
         unimplemented!()

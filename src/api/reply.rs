@@ -32,21 +32,22 @@ use crate::error::RuntimeError;
 pub enum Reply {
     Success,
     Failure(message::Failure),
-    Keylist(Vec<Key>),
+    Keylist(Vec<AccountInfo>),
     XPriv(ExtendedPrivKey),
     XPub(ExtendedPubKey),
 }
 
 impl TypedEnum for Reply {
     fn try_from_type(type_id: Type, data: &dyn Any) -> Result<Self, UnknownTypeError> {
+        const ERR: &'static str = "Internal API parsing inconsistency";
         Ok(match type_id.into_inner() {
             MSG_TYPE_SUCCESS => Self::Success,
-            MSG_TYPE_FAILURE => Self::Failure(
-                data.downcast_ref::<message::Failure>()
-                    .expect("Internal API parsing inconsistency")
-                    .clone(),
-            ),
-            MSG_TYPE_KEYLIST => unimplemented!(),
+            MSG_TYPE_FAILURE => {
+                Self::Failure(data.downcast_ref::<message::Failure>().expect(ERR).clone())
+            }
+            MSG_TYPE_KEYLIST => {
+                Self::Keylist(data.downcast_ref::<Vec<AccountInfo>>().expect(ERR).clone())
+            }
             MSG_TYPE_XPUB => unimplemented!(),
             MSG_TYPE_XPRIV => unimplemented!(),
 
@@ -61,16 +62,17 @@ impl TypedEnum for Reply {
         Type::from_inner(match self {
             Reply::Success => MSG_TYPE_SUCCESS,
             Reply::Failure(_) => MSG_TYPE_FAILURE,
+            Reply::Keylist(_) => MSG_TYPE_KEYLIST,
             _ => unimplemented!(),
         })
     }
 
     fn get_payload(&self) -> Vec<u8> {
+        const ERR: &'static str = "Strict encoding for string has failed";
         match self {
             Reply::Success => vec![],
-            Reply::Failure(failure) => {
-                strict_encode(failure).expect("Strict encoding for string has failed")
-            }
+            Reply::Failure(failure) => strict_encode(failure).expect(ERR),
+            Reply::Keylist(accounts) => strict_encode(accounts).expect(ERR),
             _ => unimplemented!(),
         }
     }
@@ -80,7 +82,8 @@ impl Reply {
     pub fn create_unmarshaller() -> Unmarshaller<Self> {
         Unmarshaller::new(bmap! {
             MSG_TYPE_SUCCESS => Self::parse_success as UnmarshallFn<_>,
-            MSG_TYPE_FAILURE => Self::parse_failure as UnmarshallFn<_>
+            MSG_TYPE_FAILURE => Self::parse_failure as UnmarshallFn<_>,
+            MSG_TYPE_KEYLIST => Self::parse_keylist as UnmarshallFn<_>
         })
     }
 
@@ -91,6 +94,10 @@ impl Reply {
 
     fn parse_failure(mut reader: &mut dyn io::Read) -> Result<Arc<dyn Any>, Error> {
         Ok(Arc::new(message::Failure::strict_decode(&mut reader)?))
+    }
+
+    fn parse_keylist(mut reader: &mut dyn io::Read) -> Result<Arc<dyn Any>, Error> {
+        Ok(Arc::new(Vec::<AccountInfo>::strict_decode(&mut reader)?))
     }
 }
 

@@ -17,7 +17,7 @@ use lnpbp::bitcoin::util::bip32::{DerivationPath, ExtendedPrivKey, ExtendedPubKe
 use lnpbp::bitcoin::util::psbt::PartiallySignedTransaction;
 
 use super::{driver, file_driver, Account, Driver, FileDriver};
-use crate::api::types::Key;
+use crate::api::types::AccountInfo;
 use crate::error::{BootstrapError, RuntimeError};
 
 pub struct Vault {
@@ -28,18 +28,36 @@ pub struct Vault {
 
 impl Vault {
     pub fn new(config: &driver::Config) -> Result<Self, BootstrapError> {
-        let driver = match config {
+        let mut driver = match config {
             driver::Config::File(fdc) => FileDriver::init(fdc)?,
         };
+        let accounts = driver.load()?;
         Ok(Self {
             driver: Box::new(driver),
             keyrings: vec![],
-            accounts: vec![],
+            accounts,
         })
     }
 
-    pub fn list(&self, root: Option<XpubIdentifier>) -> Result<Vec<Key>, RuntimeError> {
-        unimplemented!()
+    pub fn list(&self) -> Result<Vec<AccountInfo>, RuntimeError> {
+        Ok(self
+            .accounts
+            .iter()
+            .map(|account| {
+                let details = match account.name().len() {
+                    0 => None,
+                    _ => Some(account.name().clone()),
+                };
+                AccountInfo {
+                    id: account.id(),
+                    name: account.name().clone(),
+                    details,
+                    xpubkey: account.xpubkey().clone(),
+                    path: account.derivation().clone(),
+                    fingerprint: account.fingerprint(),
+                }
+            })
+            .collect())
     }
 
     pub fn seed(
@@ -67,7 +85,7 @@ impl Vault {
         &mut self,
         root: XpubIdentifier,
         path: DerivationPath,
-    ) -> Result<Key, RuntimeError> {
+    ) -> Result<AccountInfo, RuntimeError> {
         unimplemented!()
     }
 

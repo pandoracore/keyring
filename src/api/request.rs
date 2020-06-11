@@ -27,7 +27,7 @@ use super::types::*;
 #[display_from(Debug)]
 #[non_exhaustive]
 pub enum Request {
-    Keys,
+    List,
     Seed(message::Seed),
     Export(message::Export),
     Derive(message::Derive),
@@ -44,6 +44,7 @@ impl TypedEnum for Request {
                     .ok_or(UnknownTypeError)?
                     .clone(),
             ),
+            MSG_TYPE_LIST => Self::List,
             _ => Err(UnknownTypeError)?,
         })
     }
@@ -51,6 +52,7 @@ impl TypedEnum for Request {
     fn get_type(&self) -> Type {
         Type::from_inner(match self {
             Request::Seed(_) => MSG_TYPE_SEED,
+            Request::List => MSG_TYPE_LIST,
             _ => unimplemented!(),
         })
     }
@@ -60,6 +62,7 @@ impl TypedEnum for Request {
             Request::Seed(seed) => {
                 strict_encode(seed).expect("Strict encoding of a Seed message has failed")
             }
+            Request::List => vec![],
             _ => unimplemented!(),
         }
     }
