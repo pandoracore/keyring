@@ -16,11 +16,13 @@ use ::core::fmt::Display;
 use ::core::str::FromStr;
 use ::settings::{self, Config as Settings, ConfigError};
 use ::std::env;
+use ::std::fs::File;
+use ::std::io::Write;
 use ::std::net::SocketAddr;
 use ::std::path::PathBuf;
+use ::std::process::exit;
 use clap::derive::ArgEnum;
 use clap::Clap;
-use log::LevelFilter;
 
 use lnpbp::bitcoin::secp256k1;
 use lnpbp::bp;
@@ -28,6 +30,7 @@ use lnpbp::lnp::transport::zmq::SocketLocator;
 use lnpbp::lnp::NodeLocator;
 
 use crate::constants::*;
+use crate::error::{BootstrapError, ConfigInitError};
 use crate::vault;
 
 #[derive(Clap, Clone, PartialEq, Eq, Hash, Debug, Display)]
@@ -49,7 +52,7 @@ pub struct Opts {
     pub config: String,
 
     /// Sets verbosity level; can be used multiple times to increase verbosity
-    #[clap(min_values = 0, max_values = 4, parse(from_occurrences))]
+    #[clap(short, long, parse(from_occurrences))]
     pub verbose: u8,
 
     /// Data directory path
@@ -80,15 +83,47 @@ impl TryFrom<Opts> for Config {
     type Error = ConfigError;
 
     fn try_from(opts: Opts) -> Result<Self, Self::Error> {
-        let mut s = Settings::new();
-        s.merge(settings::File::with_name(&opts.config))?;
+        setup_verbose(opts.verbose);
+        debug!("Verbosity level set to {}", opts.verbose);
 
+        let mut proto = Self::default();
+        if let Some(data_dir) = opts.data_dir {
+            proto.data_dir = data_dir
+        }
+
+        let conf_file: String = proto.parse_param(opts.config);
+        if opts.init {
+            if let Err(err) = init_config(&conf_file, proto) {
+                error!("Error during config file creation: {}", err);
+                eprintln!("Unable to create configuration file {}: {}", conf_file, err);
+                exit(1);
+            }
+            exit(0);
+        }
+
+        debug!("Reading config file {}", conf_file);
+        let mut s = Settings::new();
+        match s.merge(settings::File::with_name(&conf_file)) {
+            Ok(_) => {}
+            Err(ConfigError::Foreign(err)) => {
+                error!("{}", ConfigError::Foreign(err));
+                eprintln!(
+                    "Config file {} not found: please either specify a correct \
+                     configuration file path with `--config` argument or \
+                     init default config parameters with `--init`",
+                    conf_file
+                );
+                exit(1);
+            }
+            Err(err) => Err(err)?,
+        }
+        trace!("Config file read; applying read config");
         let mut me: Self = s.try_into()?;
+
+        trace!("Applying command-line arguments & environment");
+        me.data_dir = proto.data_dir;
         if opts.verbose > 0 {
             me.verbose = opts.verbose
-        }
-        if let Some(data_dir) = opts.data_dir {
-            me.data_dir = data_dir
         }
         if let Some(tcp_endpoint) = opts.tcp_endpoint {
             me.tcp_endpoint = me.parse_param(tcp_endpoint)
@@ -96,6 +131,8 @@ impl TryFrom<Opts> for Config {
         if let Some(zmq_endpoint) = opts.zmq_endpoint {
             me.zmq_endpoint = me.parse_param(zmq_endpoint)
         }
+
+        debug!("Configuration init succeeded");
         Ok(me)
     }
 }
@@ -129,21 +166,7 @@ impl Default for Config {
 
 impl Config {
     pub fn apply(&self) {
-        if env::var("RUST_LOG").is_err() {
-            env::set_var(
-                "RUST_LOG",
-                match self.verbose {
-                    0 => "error",
-                    1 => "warn",
-                    2 => "info",
-                    3 => "debug",
-                    4 => "trace",
-                    _ => "trace",
-                },
-            );
-        }
-        env_logger::init();
-        log::set_max_level(LevelFilter::Trace);
+        setup_verbose(self.verbose);
     }
 
     pub fn parse_param<T>(&self, param: String) -> T
@@ -163,4 +186,37 @@ impl Config {
         let secp = secp256k1::Secp256k1::new();
         secp256k1::PublicKey::from_secret_key(&secp, &self.node_key)
     }
+}
+
+fn setup_verbose(verbose: u8) {
+    if env::var("RUST_LOG").is_err() {
+        env::set_var(
+            "RUST_LOG",
+            match verbose {
+                0 => "error",
+                1 => "warn",
+                2 => "info",
+                3 => "debug",
+                4 => "trace",
+                _ => "trace",
+            },
+        );
+    }
+    env_logger::init();
+}
+
+fn init_config(conf_file: &str, config: Config) -> Result<(), ConfigInitError> {
+    info!("Initializing config file at {}", conf_file);
+
+    let conf_str = toml::to_string(&config)?;
+    trace!("Serialized config:\n\n{}", conf_str);
+
+    trace!("Creating config file");
+    let mut conf_fd = File::create(conf_file)?;
+
+    trace!("Writing config to the file");
+    conf_fd.write(conf_str.as_bytes())?;
+
+    debug!("Config file successfully created");
+    return Ok(());
 }
