@@ -12,8 +12,10 @@
 // If not, see <https://www.gnu.org/licenses/agpl-3.0-standalone.html>.
 
 use bitcoin_wallet::{account::Seed, context::SecpContext};
+use serde::{Deserialize, Deserializer, Serializer};
 
 use lnpbp::bitcoin;
+use lnpbp::bitcoin::hashes::hex::{FromHex, ToHex};
 use lnpbp::bitcoin::secp256k1;
 use lnpbp::bitcoin::util::bip32::{DerivationPath, ExtendedPubKey};
 use lnpbp::bp;
@@ -34,6 +36,7 @@ use lnpbp::rand::{thread_rng, RngCore};
 #[display_from(Debug)]
 pub struct Account {
     xpubkey: ExtendedPubKey,
+    #[serde(serialize_with = "to_hex", deserialize_with = "from_hex")]
     encrypted: Vec<u8>,
     name: String,
     details: String,
@@ -66,4 +69,23 @@ impl Account {
             derivation,
         }
     }
+}
+
+/// Serializes `buffer` to a lowercase hex string.
+pub fn to_hex<T, S>(buffer: &T, serializer: S) -> Result<S::Ok, S::Error>
+where
+    T: AsRef<[u8]>,
+    S: Serializer,
+{
+    serializer.serialize_str(&buffer.as_ref().to_hex())
+}
+
+/// Deserializes a lowercase hex string to a `Vec<u8>`.
+pub fn from_hex<'de, D>(deserializer: D) -> Result<Vec<u8>, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    use serde::de::Error;
+    String::deserialize(deserializer)
+        .and_then(|string| Vec::from_hex(&string).map_err(|err| Error::custom(err.to_string())))
 }

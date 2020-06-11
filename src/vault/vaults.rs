@@ -55,6 +55,10 @@ impl Vault {
             encryption_key,
         );
         self.accounts.push(account);
+        trace!(
+            "New account created from a seed; total number of accounts {}",
+            self.accounts.len()
+        );
         self.driver.store(&self.accounts)?;
         Ok(())
     }
