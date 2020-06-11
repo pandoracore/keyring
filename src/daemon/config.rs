@@ -207,8 +207,7 @@ impl Config {
     }
 
     pub fn node_id(&self) -> secp256k1::PublicKey {
-        let secp = secp256k1::Secp256k1::new();
-        secp256k1::PublicKey::from_secret_key(&secp, &self.node_key)
+        secp256k1::PublicKey::from_secret_key(&SECP256K1, &self.node_key)
     }
 }
 

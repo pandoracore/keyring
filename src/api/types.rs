@@ -14,15 +14,15 @@
 use lnpbp::bitcoin::hash_types::XpubIdentifier;
 use lnpbp::bitcoin::util::bip32::{DerivationPath, ExtendedPrivKey, ExtendedPubKey, Fingerprint};
 
-pub(super) const MSG_TYPE_SUCCESS: u16 = 1;
-pub(super) const MSG_TYPE_FAILURE: u16 = 0;
-pub(super) const MSG_TYPE_KEYS: u16 = 1000;
-pub(super) const MSG_TYPE_KEYLIST: u16 = 1001;
-pub(super) const MSG_TYPE_SEED: u16 = 2000;
-pub(super) const MSG_TYPE_EXPORT: u16 = 2100;
-pub(super) const MSG_TYPE_XPRIV: u16 = 2101;
-pub(super) const MSG_TYPE_XPUB: u16 = 2101;
-pub(super) const MSG_TYPE_DERIVE: u16 = 3000;
+pub(super) const MSG_TYPE_SUCCESS: u16 = 0x0001;
+pub(super) const MSG_TYPE_FAILURE: u16 = 0x0000;
+pub(super) const MSG_TYPE_KEYS: u16 = 0x0100;
+pub(super) const MSG_TYPE_KEYLIST: u16 = 0x0101;
+pub(super) const MSG_TYPE_SEED: u16 = 0x0200;
+pub(super) const MSG_TYPE_EXPORT: u16 = 0x0300;
+pub(super) const MSG_TYPE_XPRIV: u16 = 0x0301;
+pub(super) const MSG_TYPE_XPUB: u16 = 0x0302;
+pub(super) const MSG_TYPE_DERIVE: u16 = 0x0400;
 
 pub type AuthCode = u32;
 

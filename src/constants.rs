@@ -19,3 +19,10 @@ pub const KEYRING_ZMQ_ENDPOINT: &'static str = "ipc:{data_dir}/zmq.rpc";
 pub const KEYRING_TCP_ENDPOINT: &'static str = "0.0.0.0:20202";
 pub const KEYRING_VAULT_FORMAT: FileFormat = FileFormat::Yaml;
 pub const KEYRING_VAULT_FILE: &'static str = "vault.yaml";
+
+use lnpbp::bitcoin::secp256k1::{self, Secp256k1};
+
+lazy_static! {
+    /// Global Secp context
+    pub static ref SECP256K1: Secp256k1<secp256k1::All> = Secp256k1::new();
+}

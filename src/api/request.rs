@@ -28,7 +28,7 @@ use super::types::*;
 #[non_exhaustive]
 pub enum Request {
     Keys,
-    Seed(AuthCode),
+    Seed(message::Seed),
     Export(message::Export),
     Derive(message::Derive),
 }
@@ -39,6 +39,11 @@ impl TypedEnum for Request {
             // Here we receive odd-numbered messages. However, in terms of RPC,
             // there is no "upstream processor", so we return error (but do not
             // break connection).
+            MSG_TYPE_SEED => Self::Seed(
+                data.downcast_ref::<message::Seed>()
+                    .ok_or(UnknownTypeError)?
+                    .clone(),
+            ),
             _ => Err(UnknownTypeError)?,
         })
     }
@@ -52,7 +57,9 @@ impl TypedEnum for Request {
 
     fn get_payload(&self) -> Vec<u8> {
         match self {
-            Request::Seed(auth) => strict_encode(auth).expect("Strict encoding for u32 has failed"),
+            Request::Seed(seed) => {
+                strict_encode(seed).expect("Strict encoding of a Seed message has failed")
+            }
             _ => unimplemented!(),
         }
     }
@@ -66,6 +73,6 @@ impl Request {
     }
 
     fn parse_seed(mut reader: &mut dyn io::Read) -> Result<Arc<dyn Any>, Error> {
-        Ok(Arc::new(AuthCode::strict_decode(&mut reader)?))
+        Ok(Arc::new(message::Seed::strict_decode(&mut reader)?))
     }
 }

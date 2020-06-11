@@ -63,7 +63,15 @@ pub enum Command {
 #[derive(Clap, Clone, Debug, Display)]
 #[display_from(Debug)]
 pub enum SeedCommand {
-    Create,
+    Create {
+        /// Name for newly generated account with a seed phrase
+        #[clap()]
+        name: String,
+
+        /// More details information about the new account
+        #[clap(short, long)]
+        details: Option<String>,
+    },
 
     Import {
         fingerprint: Fingerprint,
@@ -122,7 +130,9 @@ impl Exec for SeedCommand {
     #[inline]
     fn exec(&self, runtime: &mut Runtime) -> Result<(), Error> {
         match self {
-            SeedCommand::Create => self.exec_create(runtime),
+            SeedCommand::Create { name, details } => {
+                self.exec_create(runtime, name.clone(), details.clone())
+            }
             SeedCommand::Import { fingerprint } => self.exec_import(runtime, fingerprint),
             SeedCommand::Export { fingerprint, file } => {
                 self.exec_export(runtime, fingerprint, file)
@@ -175,9 +185,18 @@ impl Command {
 }
 
 impl SeedCommand {
-    pub fn exec_create(&self, runtime: &mut Runtime) -> Result<(), Error> {
+    pub fn exec_create(
+        &self,
+        runtime: &mut Runtime,
+        name: String,
+        description: Option<String>,
+    ) -> Result<(), Error> {
         debug!("Creating new seed");
-        let reply = runtime.request(api::Request::Seed(0))?;
+        let reply = runtime.request(api::Request::Seed(api::message::Seed {
+            auth_code: 0,
+            name,
+            description,
+        }))?;
         match reply.as_ref() {
             Reply::Success => {
                 info!("New seed created");

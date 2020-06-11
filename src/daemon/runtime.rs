@@ -21,7 +21,7 @@ use lnpbp::lnp::{transport, NoEncryption, Session, Unmarshall, Unmarshaller};
 use lnpbp::TryService;
 
 use super::Config;
-use crate::api::{types::AuthCode, Reply, Request};
+use crate::api::{message, types::AuthCode, Reply, Request};
 use crate::error::{BootstrapError, RuntimeError};
 use crate::{vault, vault::driver, vault::file_driver, Vault};
 
@@ -95,18 +95,21 @@ impl Runtime {
     }
 
     async fn rpc_process(&mut self, raw: Vec<u8>) -> Result<Reply, Reply> {
-        trace!("Got {} bytes over ZMQ RPC, parsing", raw.len());
+        trace!("Got {} bytes over ZMQ RPC: {:?}", raw.len(), raw);
         let message = &*self.unmarshaller.unmarshall(&raw)?;
         debug!("Received ZMQ RPC request: {:?}", message);
         match message {
-            Request::Seed(auth) => self.rpc_seed_create(*auth).await,
+            Request::Seed(seed) => self.rpc_seed_create(seed.clone()).await,
             _ => unimplemented!(),
         }
     }
 
-    async fn rpc_seed_create(&mut self, auth: AuthCode) -> Result<Reply, Reply> {
+    async fn rpc_seed_create(&mut self, seed: message::Seed) -> Result<Reply, Reply> {
         trace!("Awaiting for the vault lock");
-        self.vault.lock().await.seed()?;
+        self.vault
+            .lock()
+            .await
+            .seed(seed.name, seed.description, &self.config.node_id())?;
         trace!("Vault lock released");
         Ok(Reply::Success)
     }

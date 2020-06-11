@@ -18,6 +18,15 @@ use lnpbp::bitcoin::util::bip32::DerivationPath;
 #[derive(Clone, Debug, Display, StrictEncode, StrictDecode)]
 #[display_from(Debug)]
 #[non_exhaustive]
+pub struct Seed {
+    pub auth_code: AuthCode,
+    pub name: String,
+    pub description: Option<String>,
+}
+
+#[derive(Clone, Debug, Display, StrictEncode, StrictDecode)]
+#[display_from(Debug)]
+#[non_exhaustive]
 pub struct Export {
     pub key_id: XpubIdentifier,
     pub auth_code: AuthCode,

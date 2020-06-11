@@ -31,7 +31,8 @@ zmq = "~0.9"
 tiny_http = "~0.6"
 prometheus = "~0.8"
 derive_wrapper = "~0.1"
-
+bitcoin-wallet = { git = "https://github.com/pandoracore/rust-wallet", branch = "staging" }
+lazy_static = "~1.4"
 
 [dependencies.lnpbp]
 git = "https://github.com/lnp-bp/rust-lnpbp"

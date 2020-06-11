@@ -12,7 +12,7 @@
 // If not, see <https://www.gnu.org/licenses/agpl-3.0-standalone.html>.
 
 use lnpbp::bitcoin::hash_types::XpubIdentifier;
-use lnpbp::bitcoin::secp256k1::SecretKey;
+use lnpbp::bitcoin::secp256k1::{PublicKey, SecretKey};
 use lnpbp::bitcoin::util::bip32::{DerivationPath, ExtendedPrivKey, ExtendedPubKey, Fingerprint};
 use lnpbp::bitcoin::util::psbt::PartiallySignedTransaction;
 
@@ -42,8 +42,18 @@ impl Vault {
         unimplemented!()
     }
 
-    pub fn seed(&mut self) -> Result<(), RuntimeError> {
-        let account = Account::new();
+    pub fn seed(
+        &mut self,
+        name: String,
+        description: Option<String>,
+        encryption_key: &PublicKey,
+    ) -> Result<(), RuntimeError> {
+        let account = Account::new(
+            name,
+            description.unwrap_or("".to_string()),
+            None,
+            encryption_key,
+        );
         self.accounts.push(account);
         self.driver.store(&self.accounts)?;
         Ok(())

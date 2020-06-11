@@ -51,6 +51,7 @@ impl Runtime {
     pub fn request(&mut self, request: Request) -> Result<Arc<Reply>, Error> {
         trace!("Sending request to the server: {:?}", request);
         let data = request.encode()?;
+        trace!("Raw request data ({} bytes): {:?}", data.len(), data);
         self.session_rpc.send_raw_message(data)?;
         trace!("Awaiting reply");
         let raw = self.session_rpc.recv_raw_message()?;
