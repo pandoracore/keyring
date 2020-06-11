@@ -16,17 +16,15 @@
 use ::core::any::Any;
 use lnpbp::bitcoin::hash_types::XpubIdentifier;
 
-use super::file_driver;
-use super::Vault;
+use super::{file_driver, Account, Vault};
 use crate::error::{BootstrapError, RuntimeError};
 
 pub trait Driver: Send + Sync {
     fn init(config: &dyn Any) -> Result<Self, BootstrapError>
     where
         Self: Sized;
-    fn index(&self) -> Result<Vec<XpubIdentifier>, RuntimeError>;
-    fn load(&self, id: XpubIdentifier) -> Result<Vault, RuntimeError>;
-    fn store(&mut self, vault: &Vault) -> Result<bool, RuntimeError>;
+    fn load(&mut self) -> Result<Vec<Account>, Error>;
+    fn store(&mut self, accounts: &Vec<Account>) -> Result<bool, Error>;
 }
 
 #[derive(Clone, PartialEq, Eq, Debug, Display, Serialize, Deserialize)]
@@ -37,4 +35,17 @@ pub enum Config {
     File(file_driver::Config),
     // Terezor,
     // Ledger,
+}
+
+#[derive(Clone, PartialEq, Eq, Debug, Display)]
+#[display_from(Debug)]
+pub struct Error(String);
+
+impl<T> From<T> for Error
+where
+    T: ::std::error::Error,
+{
+    fn from(err: T) -> Self {
+        Self(format!("{:?}", err))
+    }
 }

@@ -17,6 +17,8 @@ use tokio::task::JoinError;
 
 use lnpbp::lnp;
 
+use crate::vault;
+
 #[derive(Debug, Display, Error, From)]
 #[display_from(Debug)]
 pub enum ConfigInitError {
@@ -52,7 +54,8 @@ pub enum BootstrapError {
     #[derive_from]
     TransportError(lnp::transport::Error),
 
-    StorageError,
+    #[derive_from]
+    VaultError(vault::driver::Error),
 
     ConfigInitError,
 
@@ -79,4 +82,6 @@ pub enum RuntimeError {
 
     #[derive_from(lnp::presentation::Error)]
     Message,
+
+    VaultDriver(String),
 }

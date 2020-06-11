@@ -16,18 +16,22 @@
 use ::core::any::Any;
 use ::std::collections::BTreeMap;
 use ::std::fs;
+use ::std::io;
+use ::std::path::Path;
 
 use lnpbp::bitcoin::XpubIdentifier;
+use lnpbp::strict_encoding::StrictDecode;
 
-use super::Driver;
+use super::{driver, Account, Driver};
 use crate::error::{BootstrapError, RuntimeError};
 use crate::Vault;
+use std::io::{Read, Seek};
 
 #[derive(Debug, Display)]
 #[display_from(Debug)]
 pub struct FileDriver {
     fd: fs::File,
-    //table: BTreeMap<XpubIdentifier, u64>,
+    config: Config,
 }
 
 #[derive(Clone, PartialEq, Eq, Hash, Debug, Display, Serialize, Deserialize)]
@@ -52,23 +56,51 @@ impl Driver for FileDriver {
         let config = config
             .downcast_ref::<Config>()
             .expect("`FileDriver` must be configured with `file_driver::Config` object");
-        info!("Initializing file storage at {:?}", &config.location);
+        info!(
+            "Initializing file driver for vault in {:?}",
+            &config.location
+        );
+        let exists = Path::new(&config.location).exists();
         let fd = fs::File::with_options()
+            .read(true)
             .write(true)
-            .create(true)
+            .create(!exists)
             .open(&config.location)?;
-        Ok(Self { fd })
+        let mut me = Self {
+            fd,
+            config: config.clone(),
+        };
+        if exists {
+            me.load()?;
+        }
+        Ok(me)
     }
 
-    fn index(&self) -> Result<Vec<XpubIdentifier>, RuntimeError> {
-        unimplemented!()
+    fn load(&mut self) -> Result<Vec<Account>, driver::Error> {
+        debug!("Loading vault from {}", self.config.location);
+        let mut data: Vec<u8> = vec![];
+        self.fd
+            .seek(io::SeekFrom::Start(0))
+            .map_err(|err| RuntimeError::VaultDriver(format!("{}", err)))?;
+        trace!(
+            "Parsing vault data (expected format {})",
+            self.config.format
+        );
+        let accounts = match self.config.format {
+            FileFormat::StrictEncoded => Vec::<Account>::strict_decode(&mut self.fd)?,
+            FileFormat::Yaml => serde_yaml::from_reader(&mut self.fd)?,
+            FileFormat::Toml => {
+                let mut data: Vec<u8> = vec![];
+                self.fd.read_to_end(&mut data)?;
+                toml::from_slice(&data)?
+            }
+            FileFormat::Json => serde_json::from_reader(&mut self.fd)?,
+        };
+        trace!("Vault loaded: {:?}", accounts);
+        Ok(accounts)
     }
 
-    fn load(&self, id: XpubIdentifier) -> Result<Vault, RuntimeError> {
-        unimplemented!()
-    }
-
-    fn store(&mut self, vault: &Vault) -> Result<bool, RuntimeError> {
+    fn store(&mut self, accounts: &Vec<Account>) -> Result<bool, driver::Error> {
         unimplemented!()
     }
 }

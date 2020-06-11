@@ -16,13 +16,14 @@ use lnpbp::bitcoin::secp256k1::SecretKey;
 use lnpbp::bitcoin::util::bip32::{DerivationPath, ExtendedPrivKey, ExtendedPubKey, Fingerprint};
 use lnpbp::bitcoin::util::psbt::PartiallySignedTransaction;
 
-use super::{driver, file_driver, Driver, FileDriver};
+use super::{driver, file_driver, Account, Driver, FileDriver};
 use crate::api::types::Key;
 use crate::error::{BootstrapError, RuntimeError};
 
 pub struct Vault {
-    keyrings: Vec<Keyring>,
     driver: Box<dyn Driver>,
+    keyrings: Vec<Keyring>,
+    accounts: Vec<Account>,
 }
 
 impl Vault {
@@ -31,8 +32,9 @@ impl Vault {
             driver::Config::File(fdc) => FileDriver::init(fdc)?,
         };
         Ok(Self {
-            keyrings: vec![],
             driver: Box::new(driver),
+            keyrings: vec![],
+            accounts: vec![],
         })
     }
 

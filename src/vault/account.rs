@@ -11,14 +11,25 @@
 // along with this software.
 // If not, see <https://www.gnu.org/licenses/agpl-3.0-standalone.html>.
 
-//! Storage drivers for private key vault
+use lnpbp::bitcoin::util::bip32::{DerivationPath, ExtendedPubKey};
 
-mod account;
-pub mod driver;
-pub mod file_driver;
-mod vaults;
-
-pub use account::Account;
-pub use driver::Driver;
-pub use file_driver::FileDriver;
-pub use vaults::{Keyring, Vault};
+#[derive(
+    Getters,
+    Clone,
+    PartialEq,
+    Eq,
+    Display,
+    Debug,
+    Serialize,
+    Deserialize,
+    StrictEncode,
+    StrictDecode,
+)]
+#[display_from(Debug)]
+pub struct Account {
+    xpubkey: ExtendedPubKey,
+    encrypted_xprivkey: Vec<u8>,
+    name: String,
+    details: String,
+    derivation: Option<DerivationPath>,
+}
