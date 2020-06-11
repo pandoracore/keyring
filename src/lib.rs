@@ -38,16 +38,19 @@ extern crate lnpbp_derive;
 #[cfg(feature = "server")]
 extern crate settings;
 
-pub(crate) mod api;
+pub mod api;
 #[cfg(feature = "cli")]
 pub mod cli;
-mod constants;
+#[cfg(feature = "server")]
+pub mod constants;
 #[cfg(feature = "daemon")]
 pub mod daemon;
+#[cfg(feature = "server")]
 pub mod error;
 #[cfg(feature = "daemon")]
 pub(crate) mod vault;
 
+#[cfg(feature = "server")]
 pub use constants::*;
 #[cfg(feature = "daemon")]
 pub use vault::Vault;

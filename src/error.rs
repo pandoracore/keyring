@@ -33,7 +33,6 @@ pub enum ConfigInitError {
     Toml(toml::ser::Error),
 }
 
-#[cfg(feature = "server")]
 #[derive(Debug, Display, Error, From)]
 #[display_from(Debug)]
 pub enum BootstrapError {
@@ -71,21 +70,18 @@ pub enum BootstrapError {
     Other,
 }
 
-#[cfg(feature = "server")]
 impl From<BootstrapError> for String {
     fn from(err: BootstrapError) -> Self {
         format!("{}", err)
     }
 }
 
-#[cfg(feature = "server")]
 impl From<&str> for BootstrapError {
     fn from(err: &str) -> Self {
         BootstrapError::ArgParseError(err.to_string())
     }
 }
 
-#[cfg(feature = "server")]
 #[derive(Debug, Display, Error, From)]
 #[display_from(Debug)]
 pub enum RuntimeError {
