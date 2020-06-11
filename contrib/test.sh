@@ -1,6 +1,6 @@
 #!/bin/sh -ex
 
-FEATURES="server daemon cli"
+FEATURES="server daemon cli integration"
 
 if [ "$DO_COV" = true ]
 then
@@ -48,7 +48,7 @@ if [ -n "$AS_DEPENDENCY" ]
 then
     cargo new dep_test
     cd dep_test
-    printf 'lnpbp = { path = "..", default-features = false }\n\n[workspace]' >> Cargo.toml
+    printf 'lnpbp = { path = "..", default-features = false, features = ["integration"] }\n\n[workspace]' >> Cargo.toml
     cargo build --verbose
     cd ..
     rm -rf dep_test

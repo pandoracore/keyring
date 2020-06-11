@@ -11,12 +11,8 @@
 // along with this software.
 // If not, see <https://www.gnu.org/licenses/agpl-3.0-standalone.html>.
 
-pub mod error;
-pub mod message;
-pub mod reply;
-pub mod request;
-pub mod types;
+mod config;
+mod runtime;
 
-pub use error::Error;
-pub use reply::Reply;
-pub use request::Request;
+pub use config::Config;
+pub use runtime::Runtime;

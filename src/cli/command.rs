@@ -17,7 +17,7 @@ use lnpbp::bitcoin::XpubIdentifier;
 use lnpbp::service::Exec;
 use lnpbp::strict_encoding::strict_encode;
 
-use super::{Error, Runtime};
+use super::Runtime;
 use crate::api;
 use crate::api::Reply;
 
@@ -145,10 +145,10 @@ pub enum DataFormat {
 
 impl Exec for Command {
     type Runtime = Runtime;
-    type Error = Error;
+    type Error = api::Error;
 
     #[inline]
-    fn exec(&self, runtime: &mut Runtime) -> Result<(), Error> {
+    fn exec(&self, runtime: &mut Runtime) -> Result<(), Self::Error> {
         match self {
             Command::Seed { subcommand } => subcommand.exec(runtime),
             Command::Xpubkey { subcommand } => subcommand.exec(runtime),
@@ -160,10 +160,10 @@ impl Exec for Command {
 
 impl Exec for SeedCommand {
     type Runtime = Runtime;
-    type Error = Error;
+    type Error = api::Error;
 
     #[inline]
-    fn exec(&self, runtime: &mut Runtime) -> Result<(), Error> {
+    fn exec(&self, runtime: &mut Runtime) -> Result<(), Self::Error> {
         match self {
             SeedCommand::Create { name, details } => {
                 self.exec_create(runtime, name.clone(), details.clone())
@@ -176,10 +176,10 @@ impl Exec for SeedCommand {
 
 impl Exec for XPubkeyCommand {
     type Runtime = Runtime;
-    type Error = Error;
+    type Error = api::Error;
 
     #[inline]
-    fn exec(&self, runtime: &mut Runtime) -> Result<(), Error> {
+    fn exec(&self, runtime: &mut Runtime) -> Result<(), Self::Error> {
         match self {
             XPubkeyCommand::List { format } => self.exec_list(runtime, format),
             XPubkeyCommand::Derive { id, path } => self.exec_derive(runtime, id, path),
@@ -190,10 +190,10 @@ impl Exec for XPubkeyCommand {
 
 impl Exec for XPrivkeyCommand {
     type Runtime = Runtime;
-    type Error = Error;
+    type Error = api::Error;
 
     #[inline]
-    fn exec(&self, runtime: &mut Runtime) -> Result<(), Error> {
+    fn exec(&self, runtime: &mut Runtime) -> Result<(), Self::Error> {
         match self {
             XPrivkeyCommand::Export { id, file } => self.exec_export(runtime, id, file),
         }
@@ -206,7 +206,7 @@ impl Command {
         runtime: &mut Runtime,
         in_file: &str,
         out_file: &str,
-    ) -> Result<(), Error> {
+    ) -> Result<(), api::Error> {
         unimplemented!()
     }
 }
@@ -217,7 +217,7 @@ impl SeedCommand {
         runtime: &mut Runtime,
         name: String,
         description: Option<String>,
-    ) -> Result<(), Error> {
+    ) -> Result<(), api::Error> {
         debug!("Creating new seed");
         let reply = runtime.request(api::Request::Seed(api::message::Seed {
             auth_code: 0,
@@ -229,12 +229,16 @@ impl SeedCommand {
                 info!("New seed created");
                 Ok(())
             }
-            Reply::Failure(failure) => Err(Error::ServerFailure(failure.clone())),
-            _ => Err(Error::UnexpectedServerResponse),
+            Reply::Failure(failure) => Err(api::Error::ServerFailure(failure.clone())),
+            _ => Err(api::Error::UnexpectedServerResponse),
         }
     }
 
-    pub fn exec_import(&self, runtime: &mut Runtime, id: &XpubIdentifier) -> Result<(), Error> {
+    pub fn exec_import(
+        &self,
+        runtime: &mut Runtime,
+        id: &XpubIdentifier,
+    ) -> Result<(), api::Error> {
         unimplemented!()
     }
 
@@ -243,13 +247,13 @@ impl SeedCommand {
         runtime: &mut Runtime,
         id: &XpubIdentifier,
         file: &str,
-    ) -> Result<(), Error> {
+    ) -> Result<(), api::Error> {
         unimplemented!()
     }
 }
 
 impl XPubkeyCommand {
-    pub fn exec_list(&self, runtime: &mut Runtime, format: &DataFormat) -> Result<(), Error> {
+    pub fn exec_list(&self, runtime: &mut Runtime, format: &DataFormat) -> Result<(), api::Error> {
         const ERR: &'static str = "Error formatting data";
 
         debug!("Listing known accounts/extended public keys");
@@ -266,8 +270,8 @@ impl XPubkeyCommand {
                 println!("{}", result);
                 Ok(())
             }
-            Reply::Failure(failure) => Err(Error::ServerFailure(failure.clone())),
-            _ => Err(Error::UnexpectedServerResponse),
+            Reply::Failure(failure) => Err(api::Error::ServerFailure(failure.clone())),
+            _ => Err(api::Error::UnexpectedServerResponse),
         }
     }
 
@@ -276,7 +280,7 @@ impl XPubkeyCommand {
         runtime: &mut Runtime,
         id: &XpubIdentifier,
         path: &DerivationPath,
-    ) -> Result<(), Error> {
+    ) -> Result<(), api::Error> {
         unimplemented!()
     }
 
@@ -285,7 +289,7 @@ impl XPubkeyCommand {
         runtime: &mut Runtime,
         id: &XpubIdentifier,
         file: &str,
-    ) -> Result<(), Error> {
+    ) -> Result<(), api::Error> {
         unimplemented!()
     }
 }
@@ -296,7 +300,7 @@ impl XPrivkeyCommand {
         runtime: &mut Runtime,
         id: &XpubIdentifier,
         file: &str,
-    ) -> Result<(), Error> {
+    ) -> Result<(), api::Error> {
         unimplemented!()
     }
 }

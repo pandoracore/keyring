@@ -45,7 +45,8 @@ branch = "master"
 
 [features]
 default = ["server"]
-all = ["server", "monitoring"]
+all = ["server", "monitoring", "integration"]
+integration = []
 server = ["daemon", "cli"]
 cli = ["shell", "base64"]
 daemon = ["shell", "settings"]

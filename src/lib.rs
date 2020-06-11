@@ -41,16 +41,18 @@ extern crate settings;
 pub mod api;
 #[cfg(feature = "cli")]
 pub mod cli;
-#[cfg(feature = "server")]
+#[cfg(any(feature = "integration", feature = "server"))]
 pub mod constants;
 #[cfg(feature = "daemon")]
 pub mod daemon;
-#[cfg(feature = "server")]
+#[cfg(any(feature = "integration", feature = "server"))]
 pub mod error;
+#[cfg(any(feature = "integration", feature = "server"))]
+pub mod i9n;
 #[cfg(feature = "daemon")]
 pub(crate) mod vault;
 
-#[cfg(feature = "server")]
+#[cfg(any(feature = "integration", feature = "server"))]
 pub use constants::*;
 #[cfg(feature = "daemon")]
 pub use vault::Vault;

@@ -11,12 +11,23 @@
 // along with this software.
 // If not, see <https://www.gnu.org/licenses/agpl-3.0-standalone.html>.
 
-pub mod error;
-pub mod message;
-pub mod reply;
-pub mod request;
-pub mod types;
+use lnpbp::lnp::transport::zmq::SocketLocator;
 
-pub use error::Error;
-pub use reply::Reply;
-pub use request::Request;
+use crate::constants::KEYRING_ZMQ_ENDPOINT;
+
+#[derive(Clone, PartialEq, Eq, Debug, Display)]
+#[display_from(Debug)]
+pub struct Config {
+    pub endpoint: SocketLocator,
+}
+
+impl Default for Config {
+    fn default() -> Self {
+        Self {
+            // TODO: Replace on KEYRING_TCP_ENDPOINT
+            endpoint: KEYRING_ZMQ_ENDPOINT
+                .parse()
+                .expect("Error in KEYRING_ZMQ_ENDPOINT constant value"),
+        }
+    }
+}

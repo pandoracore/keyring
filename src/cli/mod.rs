@@ -13,10 +13,8 @@
 
 mod command;
 mod config;
-mod error;
 mod runtime;
 
 pub use command::Command;
 pub use config::{Config, Opts};
-pub use error::Error;
 pub use runtime::Runtime;
