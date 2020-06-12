@@ -22,7 +22,7 @@ use crate::api;
 use crate::api::Reply;
 
 /// Command-line commands:
-///
+/// ```text
 ///     keyring-cli seed create
 ///     keyring-cli seed import <fingerprint>
 ///     keyring-cli seed export <fingerprint> <file>
@@ -34,7 +34,7 @@ use crate::api::Reply;
 ///     keyring-cli xprivkey export <fingerprint> <file>
 ///     
 ///     keyring-cli sign <in_file> <out_file>
-///
+/// ```
 #[derive(Clap, Clone, Debug, Display)]
 #[display_from(Debug)]
 pub enum Command {
