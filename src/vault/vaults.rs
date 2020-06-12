@@ -44,9 +44,9 @@ impl Vault {
             .accounts
             .iter()
             .map(|account| {
-                let details = match account.name().len() {
+                let details = match account.details().len() {
                     0 => None,
-                    _ => Some(account.name().clone()),
+                    _ => Some(account.details().clone()),
                 };
                 AccountInfo {
                     id: account.id(),
