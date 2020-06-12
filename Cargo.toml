@@ -37,7 +37,7 @@ bitcoin-wallet = { git = "https://github.com/pandoracore/rust-wallet", branch = 
 [dependencies.lnpbp]
 git = "https://github.com/lnp-bp/rust-lnpbp"
 branch = "master"
-features = ["all"]
+features = ["tor", "lnp", "tokio", "url", "daemons", "serde", "keygen", "websockets"]
 
 [dependencies.lnpbp_derive]
 git = "https://github.com/lnp-bp/rust-lnpbp"
@@ -47,7 +47,7 @@ branch = "master"
 default = ["server"]
 all = ["server", "monitoring", "integration"]
 integration = []
-server = ["daemon", "cli"]
+server = ["daemon", "cli", "lnpbp/log", "lnpbp/parse_arg"]
 cli = ["shell", "base64"]
 daemon = ["shell", "settings"]
 shell = ["dotenv", "clap", "serde_json", "serde_yaml", "toml", "bech32", "log", "regex", "env_logger"]

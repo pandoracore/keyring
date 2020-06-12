@@ -61,6 +61,7 @@ pub enum BootstrapError {
     #[derive_from]
     TransportError(lnp::transport::Error),
 
+    #[cfg(feature = "daemon")]
     #[derive_from]
     VaultError(vault::driver::Error),
 
