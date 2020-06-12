@@ -96,10 +96,10 @@ impl Runtime {
 
     async fn rpc_process(&mut self, raw: Vec<u8>) -> Result<Reply, Reply> {
         trace!("Got {} bytes over ZMQ RPC: {:?}", raw.len(), raw);
-        let message = &*self.unmarshaller.unmarshall(&raw)?;
+        let message = (&*self.unmarshaller.unmarshall(&raw)?).clone();
         debug!("Received ZMQ RPC request: {:?}", message);
         match message {
-            Request::Seed(seed) => self.rpc_seed_create(seed.clone()).await,
+            Request::Seed(seed) => self.rpc_seed_create(seed).await,
             Request::List => self.rpc_list().await,
             _ => unimplemented!(),
         }

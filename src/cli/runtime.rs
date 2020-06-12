@@ -48,7 +48,7 @@ impl Runtime {
         })
     }
 
-    pub fn request(&mut self, request: Request) -> Result<Arc<Reply>, api::Error> {
+    pub fn request(&mut self, request: Request) -> Result<Reply, api::Error> {
         trace!("Sending request to the server: {:?}", request);
         let data = request.encode()?;
         trace!("Raw request data ({} bytes): {:?}", data.len(), data);
@@ -58,6 +58,6 @@ impl Runtime {
         trace!("Got reply ({} bytes), parsing", raw.len());
         let reply = self.unmarshaller.unmarshall(&raw)?;
         trace!("Reply: {:?}", reply);
-        Ok(reply)
+        Ok((&*reply).clone())
     }
 }

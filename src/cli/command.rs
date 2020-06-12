@@ -224,12 +224,12 @@ impl SeedCommand {
             name,
             description,
         }))?;
-        match reply.as_ref() {
+        match reply {
             Reply::Success => {
                 info!("New seed created");
                 Ok(())
             }
-            Reply::Failure(failure) => Err(api::Error::ServerFailure(failure.clone())),
+            Reply::Failure(failure) => Err(api::Error::ServerFailure(failure)),
             _ => Err(api::Error::UnexpectedServerResponse),
         }
     }
@@ -258,14 +258,16 @@ impl XPubkeyCommand {
 
         debug!("Listing known accounts/extended public keys");
         let reply = runtime.request(api::Request::List)?;
-        match reply.as_ref() {
+        match reply {
             Reply::Keylist(accounts) => {
                 let result = match format {
-                    DataFormat::Json => serde_json::to_string(accounts).expect(ERR),
-                    DataFormat::Yaml => serde_yaml::to_string(accounts).expect(ERR),
-                    DataFormat::Toml => toml::to_string(accounts).expect(ERR),
-                    DataFormat::StrictHex => strict_encode(accounts).expect(ERR).to_hex(),
-                    DataFormat::StrictBase64 => base64::encode(strict_encode(accounts).expect(ERR)),
+                    DataFormat::Json => serde_json::to_string(&accounts).expect(ERR),
+                    DataFormat::Yaml => serde_yaml::to_string(&accounts).expect(ERR),
+                    DataFormat::Toml => toml::to_string(&accounts).expect(ERR),
+                    DataFormat::StrictHex => strict_encode(&accounts).expect(ERR).to_hex(),
+                    DataFormat::StrictBase64 => {
+                        base64::encode(strict_encode(&accounts).expect(ERR))
+                    }
                 };
                 println!("{}", result);
                 Ok(())
