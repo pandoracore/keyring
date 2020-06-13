@@ -11,6 +11,7 @@
 // along with this software.
 // If not, see <https://www.gnu.org/licenses/agpl-3.0-standalone.html>.
 
+use amplify::Wrapper;
 use core::any::Any;
 use std::io;
 use std::sync::Arc;
@@ -18,7 +19,6 @@ use std::sync::Arc;
 use lnpbp::lnp::presentation::Error;
 use lnpbp::lnp::{Type, TypedEnum, UnknownTypeError, UnmarshallFn, Unmarshaller};
 use lnpbp::strict_encoding::{strict_encode, StrictDecode};
-use lnpbp::Wrapper;
 
 use super::message;
 use super::types::*;

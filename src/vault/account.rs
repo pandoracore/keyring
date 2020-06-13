@@ -20,7 +20,7 @@ use lnpbp::bitcoin::secp256k1;
 use lnpbp::bitcoin::util::bip32::{DerivationPath, ExtendedPubKey, Fingerprint};
 use lnpbp::bitcoin::XpubIdentifier;
 use lnpbp::bp;
-use lnpbp::rand::{thread_rng, RngCore};
+use secp256k1::rand::{thread_rng, RngCore};
 
 #[derive(
     Getters,

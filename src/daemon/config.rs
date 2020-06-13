@@ -165,7 +165,7 @@ impl TryFrom<Opts> for Config {
 
 impl Default for Config {
     fn default() -> Self {
-        use lnpbp::rand::thread_rng;
+        use lnpbp::bitcoin::secp256k1::rand::{thread_rng, RngCore};
         let mut rng = thread_rng();
         let node_key = secp256k1::SecretKey::new(&mut rng);
         Self {

@@ -14,6 +14,8 @@
 #![feature(never_type)]
 #![feature(with_options)]
 
+#[macro_use]
+extern crate amplify;
 #[cfg(feature = "server")]
 #[macro_use]
 extern crate async_trait;
