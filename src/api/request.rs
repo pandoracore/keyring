@@ -11,71 +11,20 @@
 // along with this software.
 // If not, see <https://www.gnu.org/licenses/agpl-3.0-standalone.html>.
 
-use amplify::Wrapper;
-use core::any::Any;
-use std::io;
-use std::sync::Arc;
-
-use lnpbp::lnp::presentation::Error;
-use lnpbp::lnp::{Type, TypedEnum, UnknownTypeError, UnmarshallFn, Unmarshaller};
-use lnpbp::strict_encoding::{strict_encode, StrictDecode};
-
-use super::message;
-use super::types::*;
-
-#[derive(Clone, Debug, Display)]
+#[derive(Clone, Debug, Display, LnpApi)]
+#[lnp_api(encoding = "strict")]
 #[display_from(Debug)]
 #[non_exhaustive]
 pub enum Request {
+    #[lnp_api(type = 0x0201)]
     List,
-    Seed(message::Seed),
-    Export(message::Export),
-    Derive(message::Derive),
-}
 
-impl TypedEnum for Request {
-    fn try_from_type(type_id: Type, data: &dyn Any) -> Result<Self, UnknownTypeError> {
-        Ok(match type_id.into_inner() {
-            // Here we receive odd-numbered messages. However, in terms of RPC,
-            // there is no "upstream processor", so we return error (but do not
-            // break connection).
-            MSG_TYPE_SEED => Self::Seed(
-                data.downcast_ref::<message::Seed>()
-                    .ok_or(UnknownTypeError)?
-                    .clone(),
-            ),
-            MSG_TYPE_LIST => Self::List,
-            _ => Err(UnknownTypeError)?,
-        })
-    }
+    #[lnp_api(type = 0x0201)]
+    Seed(crate::api::message::Seed),
 
-    fn get_type(&self) -> Type {
-        Type::from_inner(match self {
-            Request::Seed(_) => MSG_TYPE_SEED,
-            Request::List => MSG_TYPE_LIST,
-            _ => unimplemented!(),
-        })
-    }
+    #[lnp_api(type = 0x0301)]
+    Export(crate::api::message::Export),
 
-    fn get_payload(&self) -> Vec<u8> {
-        match self {
-            Request::Seed(seed) => {
-                strict_encode(seed).expect("Strict encoding of a Seed message has failed")
-            }
-            Request::List => vec![],
-            _ => unimplemented!(),
-        }
-    }
-}
-
-impl Request {
-    pub fn create_unmarshaller() -> Unmarshaller<Self> {
-        Unmarshaller::new(bmap! {
-            MSG_TYPE_SEED => Self::parse_seed as UnmarshallFn<_>
-        })
-    }
-
-    fn parse_seed(mut reader: &mut dyn io::Read) -> Result<Arc<dyn Any>, Error> {
-        Ok(Arc::new(message::Seed::strict_decode(&mut reader)?))
-    }
+    #[lnp_api(type = 0x0401)]
+    Derive(crate::api::message::Derive),
 }

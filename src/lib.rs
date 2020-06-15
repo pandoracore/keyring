@@ -11,11 +11,11 @@
 // along with this software.
 // If not, see <https://www.gnu.org/licenses/agpl-3.0-standalone.html>.
 
-#![feature(never_type)]
-#![feature(with_options)]
+#![allow(dead_code)]
+#![feature(never_type, with_options)]
 
 #[macro_use]
-extern crate amplify;
+extern crate amplify_derive;
 #[cfg(feature = "server")]
 #[macro_use]
 extern crate async_trait;
@@ -33,8 +33,6 @@ extern crate clap;
 extern crate log;
 #[macro_use]
 extern crate num_derive;
-#[macro_use]
-extern crate lnpbp;
 #[macro_use]
 extern crate lnpbp_derive;
 #[cfg(feature = "server")]

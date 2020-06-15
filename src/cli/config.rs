@@ -12,8 +12,6 @@
 // If not, see <https://www.gnu.org/licenses/agpl-3.0-standalone.html>.
 
 use clap::Clap;
-use core::fmt::Display;
-use core::str::FromStr;
 
 use lnpbp::lnp::transport::zmq::SocketLocator;
 

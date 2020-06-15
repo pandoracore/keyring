@@ -11,9 +11,6 @@
 // along with this software.
 // If not, see <https://www.gnu.org/licenses/agpl-3.0-standalone.html>.
 
-use std::io;
-use std::sync::Arc;
-
 use lnpbp::lnp::presentation::Encode;
 use lnpbp::lnp::transport::zmq::ApiType;
 use lnpbp::lnp::{transport, NoEncryption, Session, Unmarshall, Unmarshaller};

@@ -19,19 +19,15 @@ use ::std::env;
 use ::std::fs::File;
 use ::std::io::Write;
 use ::std::net::SocketAddr;
-use ::std::path::PathBuf;
 use ::std::process::exit;
-use clap::derive::ArgEnum;
 use clap::Clap;
-use num_traits::{FromPrimitive, ToPrimitive};
+use num_traits::FromPrimitive;
 
 use lnpbp::bitcoin::secp256k1;
-use lnpbp::bp;
 use lnpbp::lnp::transport::zmq::SocketLocator;
-use lnpbp::lnp::NodeLocator;
 
 use crate::constants::*;
-use crate::error::{BootstrapError, ConfigInitError};
+use crate::error::ConfigInitError;
 use crate::vault;
 
 #[derive(Clap, Clone, PartialEq, Eq, Hash, Debug, Display)]
@@ -145,8 +141,10 @@ impl TryFrom<Opts> for Config {
             me.zmq_endpoint = me.parse_param(zmq_endpoint)
         }
 
-        if let vault::driver::Config::File(ref mut fdc) = me.vault {
-            fdc.location = format!("{}/{}", me.data_dir, fdc.location);
+        match me.vault {
+            vault::driver::Config::File(ref mut fdc) => {
+                fdc.location = format!("{}/{}", me.data_dir, fdc.location)
+            }
         }
 
         if opts.init {
@@ -165,7 +163,7 @@ impl TryFrom<Opts> for Config {
 
 impl Default for Config {
     fn default() -> Self {
-        use lnpbp::bitcoin::secp256k1::rand::{thread_rng, RngCore};
+        use lnpbp::bitcoin::secp256k1::rand::thread_rng;
         let mut rng = thread_rng();
         let node_key = secp256k1::SecretKey::new(&mut rng);
         Self {

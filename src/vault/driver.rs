@@ -14,10 +14,9 @@
 //! Storage drivers for private key vault
 
 use ::core::any::Any;
-use lnpbp::bitcoin::hash_types::XpubIdentifier;
 
-use super::{file_driver, Account, Vault};
-use crate::error::{BootstrapError, RuntimeError};
+use super::{file_driver, Account};
+use crate::error::BootstrapError;
 
 pub trait Driver: Send + Sync {
     fn init(config: &dyn Any) -> Result<Self, BootstrapError>

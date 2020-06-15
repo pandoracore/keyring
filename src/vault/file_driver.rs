@@ -14,17 +14,14 @@
 //! File storage drivers for private key vault
 
 use ::core::any::Any;
-use ::std::collections::BTreeMap;
 use ::std::fs;
 use ::std::io;
 use ::std::path::Path;
 
-use lnpbp::bitcoin::XpubIdentifier;
 use lnpbp::strict_encoding::{StrictDecode, StrictEncode};
 
 use super::{driver, Account, Driver};
-use crate::error::{BootstrapError, RuntimeError};
-use crate::Vault;
+use crate::error::BootstrapError;
 use std::io::{Read, Seek, Write};
 
 #[derive(Debug, Display)]
@@ -79,7 +76,6 @@ impl Driver for FileDriver {
 
     fn load(&mut self) -> Result<Vec<Account>, driver::Error> {
         debug!("Loading vault from {}", self.config.location);
-        let mut data: Vec<u8> = vec![];
         self.fd.seek(io::SeekFrom::Start(0))?;
         trace!(
             "Parsing vault data (expected format {})",

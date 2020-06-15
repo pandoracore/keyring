@@ -203,9 +203,9 @@ impl Exec for XPrivkeyCommand {
 impl Command {
     pub fn exec_sign(
         &self,
-        runtime: &mut Runtime,
-        in_file: &str,
-        out_file: &str,
+        _runtime: &mut Runtime,
+        _in_file: &str,
+        _out_file: &str,
     ) -> Result<(), api::Error> {
         unimplemented!()
     }
@@ -236,17 +236,17 @@ impl SeedCommand {
 
     pub fn exec_import(
         &self,
-        runtime: &mut Runtime,
-        id: &XpubIdentifier,
+        _runtime: &mut Runtime,
+        _id: &XpubIdentifier,
     ) -> Result<(), api::Error> {
         unimplemented!()
     }
 
     pub fn exec_export(
         &self,
-        runtime: &mut Runtime,
-        id: &XpubIdentifier,
-        file: &str,
+        _runtime: &mut Runtime,
+        _id: &XpubIdentifier,
+        _file: &str,
     ) -> Result<(), api::Error> {
         unimplemented!()
     }
@@ -279,18 +279,18 @@ impl XPubkeyCommand {
 
     pub fn exec_derive(
         &self,
-        runtime: &mut Runtime,
-        id: &XpubIdentifier,
-        path: &DerivationPath,
+        _runtime: &mut Runtime,
+        _id: &XpubIdentifier,
+        _path: &DerivationPath,
     ) -> Result<(), api::Error> {
         unimplemented!()
     }
 
     pub fn exec_export(
         &self,
-        runtime: &mut Runtime,
-        id: &XpubIdentifier,
-        file: &str,
+        _runtime: &mut Runtime,
+        _id: &XpubIdentifier,
+        _file: &str,
     ) -> Result<(), api::Error> {
         unimplemented!()
     }
@@ -299,9 +299,9 @@ impl XPubkeyCommand {
 impl XPrivkeyCommand {
     pub fn exec_export(
         &self,
-        runtime: &mut Runtime,
-        id: &XpubIdentifier,
-        file: &str,
+        _runtime: &mut Runtime,
+        _id: &XpubIdentifier,
+        _file: &str,
     ) -> Result<(), api::Error> {
         unimplemented!()
     }

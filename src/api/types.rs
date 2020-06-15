@@ -12,17 +12,7 @@
 // If not, see <https://www.gnu.org/licenses/agpl-3.0-standalone.html>.
 
 use lnpbp::bitcoin::hash_types::XpubIdentifier;
-use lnpbp::bitcoin::util::bip32::{DerivationPath, ExtendedPrivKey, ExtendedPubKey, Fingerprint};
-
-pub(super) const MSG_TYPE_SUCCESS: u16 = 0x0003;
-pub(super) const MSG_TYPE_FAILURE: u16 = 0x0001;
-pub(super) const MSG_TYPE_LIST: u16 = 0x0101;
-pub(super) const MSG_TYPE_KEYLIST: u16 = 0x0103;
-pub(super) const MSG_TYPE_SEED: u16 = 0x0201;
-pub(super) const MSG_TYPE_EXPORT: u16 = 0x0301;
-pub(super) const MSG_TYPE_XPRIV: u16 = 0x0301;
-pub(super) const MSG_TYPE_XPUB: u16 = 0x0303;
-pub(super) const MSG_TYPE_DERIVE: u16 = 0x0401;
+use lnpbp::bitcoin::util::bip32::{DerivationPath, ExtendedPubKey, Fingerprint};
 
 pub type AuthCode = u32;
 

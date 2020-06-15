@@ -11,7 +11,6 @@
 // along with this software.
 // If not, see <https://www.gnu.org/licenses/agpl-3.0-standalone.html>.
 
-use clap::derive::Clap;
 use std::sync::Arc;
 use tokio::sync::Mutex;
 
@@ -21,9 +20,9 @@ use lnpbp::lnp::{transport, NoEncryption, Session, Unmarshall, Unmarshaller};
 use lnpbp::TryService;
 
 use super::Config;
-use crate::api::{message, types::AuthCode, Reply, Request};
+use crate::api::{message, Reply, Request};
 use crate::error::{BootstrapError, RuntimeError};
-use crate::{vault, vault::driver, vault::file_driver, Vault};
+use crate::Vault;
 
 pub struct Runtime {
     /// Original configuration object

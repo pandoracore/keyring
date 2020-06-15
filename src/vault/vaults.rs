@@ -13,10 +13,10 @@
 
 use lnpbp::bitcoin::hash_types::XpubIdentifier;
 use lnpbp::bitcoin::secp256k1::{PublicKey, SecretKey};
-use lnpbp::bitcoin::util::bip32::{DerivationPath, ExtendedPrivKey, ExtendedPubKey, Fingerprint};
+use lnpbp::bitcoin::util::bip32::{DerivationPath, ExtendedPrivKey, ExtendedPubKey};
 use lnpbp::bitcoin::util::psbt::PartiallySignedTransaction;
 
-use super::{driver, file_driver, Account, Driver, FileDriver};
+use super::{driver, Account, Driver, FileDriver};
 use crate::api::types::AccountInfo;
 use crate::error::{BootstrapError, RuntimeError};
 
@@ -83,13 +83,13 @@ impl Vault {
 
     pub fn derive(
         &mut self,
-        root: XpubIdentifier,
-        path: DerivationPath,
+        _root: XpubIdentifier,
+        _path: DerivationPath,
     ) -> Result<AccountInfo, RuntimeError> {
         unimplemented!()
     }
 
-    pub fn xpub(&self, id: XpubIdentifier) -> Result<ExtendedPubKey, RuntimeError> {
+    pub fn xpub(&self, _id: XpubIdentifier) -> Result<ExtendedPubKey, RuntimeError> {
         unimplemented!()
     }
 
@@ -99,8 +99,8 @@ impl Vault {
 
     pub fn unlock(
         &self,
-        id: XpubIdentifier,
-        unlock: &mut SecretKey,
+        _id: XpubIdentifier,
+        _unlock: &mut SecretKey,
     ) -> Result<Keyring, RuntimeError> {
         unimplemented!()
     }
@@ -111,13 +111,13 @@ pub struct Keyring {
 }
 
 impl Keyring {
-    pub fn xpriv(&self, id: XpubIdentifier) -> Result<ExtendedPrivKey, RuntimeError> {
+    pub fn xpriv(&self, _id: XpubIdentifier) -> Result<ExtendedPrivKey, RuntimeError> {
         unimplemented!()
     }
 
     pub fn sign(
         &self,
-        psbt: PartiallySignedTransaction,
+        _psbt: PartiallySignedTransaction,
     ) -> Result<PartiallySignedTransaction, RuntimeError> {
         unimplemented!()
     }
