@@ -19,7 +19,7 @@ pub enum Request {
     #[lnp_api(type = 0x0201)]
     List,
 
-    #[lnp_api(type = 0x0201)]
+    #[lnp_api(type = 0x0203)]
     Seed(crate::api::message::Seed),
 
     #[lnp_api(type = 0x0301)]
