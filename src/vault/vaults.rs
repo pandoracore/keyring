@@ -13,20 +13,17 @@
 
 use lnpbp::bitcoin::hash_types::XpubIdentifier;
 use lnpbp::bitcoin::secp256k1::{PublicKey, SecretKey};
-use lnpbp::bitcoin::util::bip32::{
-    DerivationPath, ExtendedPrivKey, ExtendedPubKey, KeyApplications,
-};
-use lnpbp::bitcoin::util::psbt::PartiallySignedTransaction;
+use lnpbp::bitcoin::util::bip32::{DerivationPath, ExtendedPubKey, KeyApplications};
 use lnpbp::bp::Chains;
 
-use super::{driver, Account, Driver, FileDriver};
+use super::{driver, Driver, FileDriver, Keyring};
 use crate::api::types::AccountInfo;
 use crate::error::{BootstrapError, RuntimeError};
 
 pub struct Vault {
     driver: Box<dyn Driver>,
-    keyrings: Vec<Keyring>,
-    accounts: Vec<Account>,
+    //keyrings: Vec<Keyring>,
+    accounts: Vec<Keyring>,
 }
 
 impl Vault {
@@ -37,7 +34,7 @@ impl Vault {
         let accounts = driver.load()?;
         Ok(Self {
             driver: Box::new(driver),
-            keyrings: vec![],
+            //keyrings: vec![],
             accounts,
         })
     }
@@ -71,14 +68,19 @@ impl Vault {
         application: KeyApplications,
         encryption_key: PublicKey,
     ) -> Result<(), RuntimeError> {
-        let account = Account::new(
-            name,
-            description.unwrap_or("".to_string()),
-            chain,
-            application,
-            None,
-            encryption_key,
-        );
+        let description = description.unwrap_or("".to_string());
+        let account = loop {
+            if let Some(kr) = Keyring::new(
+                name.clone(),
+                description.clone(),
+                chain.clone(),
+                application,
+                None,
+                encryption_key,
+            ) {
+                break kr;
+            }
+        };
         self.accounts.push(account);
         trace!(
             "New account created from a seed; total number of accounts {}",
@@ -113,6 +115,7 @@ impl Vault {
     }
 }
 
+/*
 pub struct Keyring {
     xprivkey: ExtendedPrivKey,
 }
@@ -133,3 +136,4 @@ impl Keyring {
         unimplemented!()
     }
 }
+ */

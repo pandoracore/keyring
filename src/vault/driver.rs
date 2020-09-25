@@ -15,15 +15,15 @@
 
 use ::core::any::Any;
 
-use super::{file_driver, Account};
+use super::{file_driver, Keyring};
 use crate::error::BootstrapError;
 
 pub trait Driver: Send + Sync {
     fn init(config: &dyn Any) -> Result<Self, BootstrapError>
     where
         Self: Sized;
-    fn load(&mut self) -> Result<Vec<Account>, Error>;
-    fn store(&mut self, accounts: &Vec<Account>) -> Result<(), Error>;
+    fn load(&mut self) -> Result<Vec<Keyring>, Error>;
+    fn store(&mut self, accounts: &Vec<Keyring>) -> Result<(), Error>;
 }
 
 #[derive(Clone, PartialEq, Eq, Debug, Display, Serialize, Deserialize)]

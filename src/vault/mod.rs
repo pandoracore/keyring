@@ -13,12 +13,12 @@
 
 //! Storage drivers for private key vault
 
-mod account;
+mod accounts;
 pub mod driver;
 pub mod file_driver;
 mod vaults;
 
-pub use account::Account;
+pub use accounts::Keyring;
 pub use driver::Driver;
 pub use file_driver::FileDriver;
-pub use vaults::{Keyring, Vault};
+pub use vaults::Vault;

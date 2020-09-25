@@ -39,7 +39,7 @@ use secp256k1::rand::{thread_rng, RngCore};
     StrictDecode,
 )]
 #[display_from(Debug)]
-pub struct Account {
+pub struct Keyring {
     xpubkey: ExtendedPubKey,
     #[serde(serialize_with = "to_hex", deserialize_with = "from_hex")]
     encrypted: Vec<u8>,
@@ -49,8 +49,25 @@ pub struct Account {
     derivation: Option<DerivationPath>,
 }
 
-impl Account {
-    // TODO: In case of any SECP256k1 error return Option::None
+impl Keyring {
+    /// Returns [Option::None] if any of Scep256k1 cryptographic functions fail
+    /// due to negligible probability that one of generated random private keys
+    /// does not belong to elliptic curve group. In this case the caller just
+    /// need to retry the generation in a loop like
+    /// ```
+    /// # use lnpbp::bitcoin::secp256k1;
+    /// # use lnpbp::bitcoin::util::bip32::KeyApplications;
+    /// # use lnpbp::bp::Chains;
+    /// let keyring = loop {
+    ///     if let Some(kr) = Keyring::new(
+    ///         Defailt::default(),
+    ///         Default::default(),
+    ///         Chains::Mainnet,
+    ///         KeyApplications::SegWitV0Singlesig,
+    ///         secp256k1::SecretKey::from_slice(&[1u8; 32])
+    ///     ) { break kr }
+    /// };
+    /// ```
     pub fn new(
         name: String,
         details: String,
@@ -58,7 +75,7 @@ impl Account {
         application: KeyApplications,
         derivation: Option<DerivationPath>,
         encryption_key: secp256k1::PublicKey,
-    ) -> Self {
+    ) -> Option<Self> {
         let mut random = [0u8; 32];
         thread_rng().fill_bytes(&mut random);
         let mut seed = random;
@@ -71,35 +88,28 @@ impl Account {
             ),
             &seed,
         )
-        .expect("Master extended private key generation failed");
-        let xpubkey = ExtendedPubKey::from_private(&lnpbp::SECP256K1, &xprivkey)
-            .expect("Master extended private key derivation failed");
+        .ok()?;
+        let xpubkey = ExtendedPubKey::from_private(&lnpbp::SECP256K1, &xprivkey)?;
         // Wiping xprv:
         thread_rng().fill_bytes(&mut random);
-        xprivkey
-            .private_key
-            .key
-            .add_assign(&random)
-            .expect("Can't wipe xpriv data");
+        xprivkey.private_key.key.add_assign(&random).ok()?;
 
         thread_rng().fill_bytes(&mut random);
-        let mut blinding =
-            secp256k1::SecretKey::from_slice(&random).expect("Blinding key generation failed");
+        let mut blinding = secp256k1::SecretKey::from_slice(&random).ok()?;
         let unblinding = secp256k1::PublicKey::from_secret_key(&lnpbp::SECP256K1, &blinding);
-        let encrypted =
-            encrypt_elgamal(&seed, encryption_key, &mut blinding).expect("Encryption failed");
+        let encrypted = encrypt_elgamal(&seed, encryption_key, &mut blinding).ok()?;
         // Wiping out seed and blinding source
         thread_rng().fill_bytes(&mut random);
         thread_rng().fill_bytes(&mut seed);
 
-        Self {
+        Some(Self {
             xpubkey,
             encrypted,
             unblinding,
             name,
             details,
             derivation,
-        }
+        })
     }
 
     pub fn id(&self) -> XpubIdentifier {

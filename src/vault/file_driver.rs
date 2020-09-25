@@ -20,7 +20,7 @@ use ::std::path::Path;
 
 use lnpbp::strict_encoding::{StrictDecode, StrictEncode};
 
-use super::{driver, Account, Driver};
+use super::{driver, Driver, Keyring};
 use crate::error::BootstrapError;
 use std::io::{Read, Seek, Write};
 
@@ -74,7 +74,7 @@ impl Driver for FileDriver {
         Ok(me)
     }
 
-    fn load(&mut self) -> Result<Vec<Account>, driver::Error> {
+    fn load(&mut self) -> Result<Vec<Keyring>, driver::Error> {
         debug!("Loading vault from {}", self.config.location);
         self.fd.seek(io::SeekFrom::Start(0))?;
         trace!(
@@ -82,7 +82,7 @@ impl Driver for FileDriver {
             self.config.format
         );
         let accounts = match self.config.format {
-            FileFormat::StrictEncoded => Vec::<Account>::strict_decode(&mut self.fd)?,
+            FileFormat::StrictEncoded => Vec::<Keyring>::strict_decode(&mut self.fd)?,
             FileFormat::Yaml => serde_yaml::from_reader(&mut self.fd)?,
             FileFormat::Toml => {
                 let mut data: Vec<u8> = vec![];
@@ -95,7 +95,7 @@ impl Driver for FileDriver {
         Ok(accounts)
     }
 
-    fn store(&mut self, accounts: &Vec<Account>) -> Result<(), driver::Error> {
+    fn store(&mut self, accounts: &Vec<Keyring>) -> Result<(), driver::Error> {
         debug!(
             "Storing vault data to the file {} in {} format",
             self.config.location, self.config.format
