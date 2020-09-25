@@ -11,14 +11,19 @@
 // along with this software.
 // If not, see <https://www.gnu.org/licenses/agpl-3.0-standalone.html>.
 
-use bitcoin_wallet::{account::Seed, context::SecpContext};
 use serde::{Deserialize, Deserializer, Serializer};
+use std::convert::TryFrom;
 
 use lnpbp::bitcoin;
 use lnpbp::bitcoin::hashes::hex::{FromHex, ToHex};
 use lnpbp::bitcoin::secp256k1;
-use lnpbp::bitcoin::util::bip32::{DerivationPath, ExtendedPubKey, Fingerprint};
+use lnpbp::bitcoin::util::bip32::{
+    DefaultResolver, DerivationPath, ExtendedPrivKey, ExtendedPubKey, Fingerprint, KeyApplications,
+    VersionResolver,
+};
 use lnpbp::bitcoin::XpubIdentifier;
+use lnpbp::bp::Chains;
+use lnpbp::elgamal::encrypt_elgamal;
 use secp256k1::rand::{thread_rng, RngCore};
 
 #[derive(
@@ -38,32 +43,59 @@ pub struct Account {
     xpubkey: ExtendedPubKey,
     #[serde(serialize_with = "to_hex", deserialize_with = "from_hex")]
     encrypted: Vec<u8>,
+    unblinding: secp256k1::PublicKey,
     name: String,
     details: String,
     derivation: Option<DerivationPath>,
 }
 
 impl Account {
+    // TODO: In case of any SECP256k1 error return Option::None
     pub fn new(
         name: String,
         details: String,
+        chain: Chains,
+        application: KeyApplications,
         derivation: Option<DerivationPath>,
-        encryption_key: &secp256k1::PublicKey,
+        encryption_key: secp256k1::PublicKey,
     ) -> Self {
-        let mut random = vec![0u8; 32];
-        thread_rng().fill_bytes(random.as_mut_slice());
-        let seed = Seed(random);
-        let context = SecpContext::new();
-        let encrypted = seed
-            .encrypt_elgamal(encryption_key)
-            .expect("Encryption failed");
-        let master_key = context
-            .master_private_key(bitcoin::Network::Bitcoin, &seed)
-            .expect("Public key generation failed");
-        let xpubkey = context.extended_public_from_private(&master_key);
+        let mut random = [0u8; 32];
+        thread_rng().fill_bytes(&mut random);
+        let mut seed = random;
+
+        let mut xprivkey = ExtendedPrivKey::new_master(
+            DefaultResolver::resolve(
+                bitcoin::Network::try_from(chain).unwrap_or(bitcoin::Network::Bitcoin),
+                application,
+                true,
+            ),
+            &seed,
+        )
+        .expect("Master extended private key generation failed");
+        let xpubkey = ExtendedPubKey::from_private(&lnpbp::SECP256K1, &xprivkey)
+            .expect("Master extended private key derivation failed");
+        // Wiping xprv:
+        thread_rng().fill_bytes(&mut random);
+        xprivkey
+            .private_key
+            .key
+            .add_assign(&random)
+            .expect("Can't wipe xpriv data");
+
+        thread_rng().fill_bytes(&mut random);
+        let mut blinding =
+            secp256k1::SecretKey::from_slice(&random).expect("Blinding key generation failed");
+        let unblinding = secp256k1::PublicKey::from_secret_key(&lnpbp::SECP256K1, &blinding);
+        let encrypted =
+            encrypt_elgamal(&seed, encryption_key, &mut blinding).expect("Encryption failed");
+        // Wiping out seed and blinding source
+        thread_rng().fill_bytes(&mut random);
+        thread_rng().fill_bytes(&mut seed);
+
         Self {
             xpubkey,
             encrypted,
+            unblinding,
             name,
             details,
             derivation,

@@ -18,7 +18,7 @@
 #[macro_use]
 extern crate log;
 
-use clap::derive::Clap;
+use clap::Clap;
 use log::LevelFilter;
 use std::env;
 

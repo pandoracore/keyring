@@ -14,23 +14,26 @@
 #![allow(dead_code)]
 #![feature(never_type, with_options)]
 
+#[cfg(feature = "daemon")]
 #[macro_use]
 extern crate amplify_derive;
 #[cfg(feature = "server")]
 #[macro_use]
 extern crate async_trait;
+#[cfg(feature = "daemon")]
 #[macro_use]
 extern crate lazy_static;
 #[macro_use]
 extern crate derive_wrapper;
 #[macro_use]
 extern crate serde;
-#[cfg(feature = "server")]
+#[cfg(any(feature = "daemon", feature = "cli"))]
 #[macro_use]
 extern crate clap;
-#[cfg(feature = "server")]
+#[cfg(any(feature = "daemon", feature = "cli"))]
 #[macro_use]
 extern crate log;
+#[cfg(feature = "daemon")]
 #[macro_use]
 extern crate num_derive;
 #[macro_use]

@@ -57,6 +57,12 @@ version:
         - path: !wallet!derivation_path
         - auth_code: !second_auth_factor
 
+      &sign 4000:
+        - psbt: !wallet!psbt
+
+      &psbt 4001:
+        - psbt: !wallet!psbt
+
     extensions:
       # No TLV extensions are defined
 
@@ -78,7 +84,12 @@ rpc:
     responses:
       - &error
       - &xpriv
-      - &xpuv
+      - &xpub
+
+  - request: &sign
+    responses:
+      - &psbt
+      - &error
 
 vocabulary:
   rules:

@@ -16,8 +16,8 @@
 #[macro_use]
 extern crate log;
 
-use ::core::convert::TryInto;
-use clap::derive::Clap;
+use clap::Clap;
+use core::convert::TryInto;
 use log::LevelFilter;
 
 use lnpbp::TryService;

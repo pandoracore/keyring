@@ -12,14 +12,43 @@
 // If not, see <https://www.gnu.org/licenses/agpl-3.0-standalone.html>.
 
 use lnpbp::bitcoin::hashes::hex::{FromHex, ToHex};
-use lnpbp::bitcoin::util::bip32::DerivationPath;
+use lnpbp::bitcoin::util::bip32::{DerivationPath, KeyApplications};
 use lnpbp::bitcoin::XpubIdentifier;
+use lnpbp::bp::Chains;
 use lnpbp::service::Exec;
 use lnpbp::strict_encoding::strict_encode;
 
 use super::Runtime;
 use crate::api;
 use crate::api::Reply;
+
+pub trait TryFromStr
+where
+    Self: Sized,
+{
+    type Error: std::error::Error;
+    fn try_from_str(s: &str) -> Result<Self, Self::Error>;
+}
+
+/// Error for an unknown enum representation; either string or numeric
+#[derive(Clone, Copy, PartialEq, Eq, Debug, Display, Error)]
+#[display_from(Debug)]
+pub struct EnumReprError;
+
+impl TryFromStr for KeyApplications {
+    type Error = EnumReprError;
+    fn try_from_str(s: &str) -> Result<Self, Self::Error> {
+        Ok(match s.to_lowercase().as_str() {
+            "pkh" => KeyApplications::Legacy,
+            "sh" => KeyApplications::Legacy,
+            "wpkh" => KeyApplications::SegWitV0Singlesig,
+            "wsh" => KeyApplications::SegWitV0Miltisig,
+            "wpkh-sh" => KeyApplications::SegWitLegacySinglesig,
+            "wsh-sh" => KeyApplications::SegWitLegacyMultisig,
+            _ => Err(EnumReprError)?,
+        })
+    }
+}
 
 /// Command-line commands:
 /// ```text
@@ -67,12 +96,21 @@ pub enum Command {
 #[display_from(Debug)]
 pub enum SeedCommand {
     Create {
+        /// Target chain for the key
+        #[clap()]
+        chain: Chains,
+
+        /// Application scope. Possible values are:
+        /// pkh, sh, wpkh, wsh, wpkh-sh, wsh-sh
+        #[clap(parse(try_from_str = KeyApplications::try_from_str))]
+        application: KeyApplications,
+
         /// Name for newly generated account with a seed phrase
         #[clap()]
         name: String,
 
         /// More details information about the new account
-        #[clap(short, long)]
+        #[clap()]
         details: Option<String>,
     },
 
@@ -165,9 +203,18 @@ impl Exec for SeedCommand {
     #[inline]
     fn exec(&self, runtime: &mut Runtime) -> Result<(), Self::Error> {
         match self {
-            SeedCommand::Create { name, details } => {
-                self.exec_create(runtime, name.clone(), details.clone())
-            }
+            SeedCommand::Create {
+                name,
+                details,
+                chain,
+                application,
+            } => self.exec_create(
+                runtime,
+                name.clone(),
+                details.clone(),
+                chain.clone(),
+                *application,
+            ),
             SeedCommand::Import { id } => self.exec_import(runtime, id),
             SeedCommand::Export { id, file } => self.exec_export(runtime, id, file),
         }
@@ -217,11 +264,15 @@ impl SeedCommand {
         runtime: &mut Runtime,
         name: String,
         description: Option<String>,
+        chain: Chains,
+        application: KeyApplications,
     ) -> Result<(), api::Error> {
         debug!("Creating new seed");
         let reply = runtime.request(api::Request::Seed(api::message::Seed {
             auth_code: 0,
             name,
+            chain,
+            application,
             description,
         }))?;
         match reply {

@@ -13,8 +13,11 @@
 
 use lnpbp::bitcoin::hash_types::XpubIdentifier;
 use lnpbp::bitcoin::secp256k1::{PublicKey, SecretKey};
-use lnpbp::bitcoin::util::bip32::{DerivationPath, ExtendedPrivKey, ExtendedPubKey};
+use lnpbp::bitcoin::util::bip32::{
+    DerivationPath, ExtendedPrivKey, ExtendedPubKey, KeyApplications,
+};
 use lnpbp::bitcoin::util::psbt::PartiallySignedTransaction;
+use lnpbp::bp::Chains;
 
 use super::{driver, Account, Driver, FileDriver};
 use crate::api::types::AccountInfo;
@@ -64,11 +67,15 @@ impl Vault {
         &mut self,
         name: String,
         description: Option<String>,
-        encryption_key: &PublicKey,
+        chain: Chains,
+        application: KeyApplications,
+        encryption_key: PublicKey,
     ) -> Result<(), RuntimeError> {
         let account = Account::new(
             name,
             description.unwrap_or("".to_string()),
+            chain,
+            application,
             None,
             encryption_key,
         );

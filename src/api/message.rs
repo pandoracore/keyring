@@ -13,7 +13,8 @@
 
 use super::types::AuthCode;
 use lnpbp::bitcoin::hash_types::XpubIdentifier;
-use lnpbp::bitcoin::util::bip32::DerivationPath;
+use lnpbp::bitcoin::util::bip32::{DerivationPath, KeyApplications};
+use lnpbp::bp::Chains;
 
 #[derive(Clone, Debug, Display, StrictEncode, StrictDecode)]
 #[display_from(Debug)]
@@ -21,6 +22,8 @@ use lnpbp::bitcoin::util::bip32::DerivationPath;
 pub struct Seed {
     pub auth_code: AuthCode,
     pub name: String,
+    pub chain: Chains,
+    pub application: KeyApplications,
     pub description: Option<String>,
 }
 
