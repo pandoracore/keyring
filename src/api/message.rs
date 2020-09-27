@@ -11,25 +11,36 @@
 // along with this software.
 // If not, see <https://www.gnu.org/licenses/agpl-3.0-standalone.html>.
 
-use super::types::AuthCode;
+use std::collections::HashSet;
+
 use lnpbp::bitcoin::hash_types::XpubIdentifier;
-use lnpbp::bitcoin::util::bip32::{DerivationPath, KeyApplications};
+use lnpbp::bitcoin::secp256k1::SecretKey;
+use lnpbp::bitcoin::util::bip32::{DerivationPath, KeyApplication};
+use lnpbp::bitcoin::util::psbt::PartiallySignedTransaction;
+use lnpbp::bp::chain::AssetId;
 use lnpbp::bp::Chain;
+
+use super::types::AuthCode;
 
 #[derive(Clone, Debug, Display, StrictEncode, StrictDecode)]
 #[display_from(Debug)]
-#[non_exhaustive]
-pub struct Seed {
-    pub auth_code: AuthCode,
-    pub name: String,
-    pub chain: Chain,
-    pub application: KeyApplications,
-    pub description: Option<String>,
+pub struct Failure {
+    pub code: u16,
+    pub info: String,
 }
 
 #[derive(Clone, Debug, Display, StrictEncode, StrictDecode)]
 #[display_from(Debug)]
-#[non_exhaustive]
+pub struct Seed {
+    pub name: String,
+    pub chain: Chain,
+    pub application: KeyApplication,
+    pub description: Option<String>,
+    pub auth_code: AuthCode,
+}
+
+#[derive(Clone, Debug, Display, StrictEncode, StrictDecode)]
+#[display_from(Debug)]
 pub struct Export {
     pub key_id: XpubIdentifier,
     pub auth_code: AuthCode,
@@ -37,17 +48,33 @@ pub struct Export {
 
 #[derive(Clone, Debug, Display, StrictEncode, StrictDecode)]
 #[display_from(Debug)]
-#[non_exhaustive]
 pub struct Derive {
     pub from: XpubIdentifier,
     pub path: DerivationPath,
+    pub name: String,
+    pub details: String,
+    pub assets: HashSet<AssetId>,
+    pub decryption_key: SecretKey,
     pub auth_code: AuthCode,
 }
 
 #[derive(Clone, Debug, Display, StrictEncode, StrictDecode)]
 #[display_from(Debug)]
-#[non_exhaustive]
-pub struct Failure {
-    pub code: u16,
-    pub info: String,
+pub struct SignPsbt {
+    pub psbt: PartiallySignedTransaction,
+    pub auth_code: AuthCode,
+}
+
+#[derive(Clone, Debug, Display, StrictEncode, StrictDecode)]
+#[display_from(Debug)]
+pub struct SignKey {
+    pub key_id: XpubIdentifier,
+    pub auth_code: AuthCode,
+}
+
+#[derive(Clone, Debug, Display, StrictEncode, StrictDecode)]
+#[display_from(Debug)]
+pub struct SignData {
+    pub data: Vec<u8>,
+    pub auth_code: AuthCode,
 }

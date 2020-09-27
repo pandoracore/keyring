@@ -16,15 +16,27 @@
 #[display_from(Debug)]
 #[non_exhaustive]
 pub enum Request {
-    #[lnp_api(type = 0x0201)]
+    #[lnp_api(type = 0x0010)]
     List,
 
-    #[lnp_api(type = 0x0203)]
+    #[lnp_api(type = 0x0020)]
     Seed(crate::api::message::Seed),
 
-    #[lnp_api(type = 0x0301)]
-    Export(crate::api::message::Export),
+    #[lnp_api(type = 0x0030)]
+    ExportXpub(crate::api::message::Export),
 
-    #[lnp_api(type = 0x0401)]
+    #[lnp_api(type = 0x0032)]
+    ExportXpriv(crate::api::message::Export),
+
+    #[lnp_api(type = 0x0040)]
     Derive(crate::api::message::Derive),
+
+    #[lnp_api(type = 0x0050)]
+    SignPsbt(crate::api::message::SignPsbt),
+
+    #[lnp_api(type = 0x0052)]
+    SignKey(crate::api::message::SignKey),
+
+    #[lnp_api(type = 0x0054)]
+    SignData(crate::api::message::SignData),
 }

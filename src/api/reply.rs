@@ -22,19 +22,29 @@ use crate::error::RuntimeError;
 #[display_from(Debug)]
 #[non_exhaustive]
 pub enum Reply {
-    #[lnp_api(type = 0x0003)]
+    #[lnp_api(type = 0x0100)]
     Success,
 
-    #[lnp_api(type = 0x0001)]
+    #[lnp_api(type = 0x0102)]
     Failure(crate::api::message::Failure),
 
-    #[lnp_api(type = 0x0103)]
+    #[lnp_api(type = 0x0100)]
     Keylist(Vec<crate::api::types::AccountInfo>),
-    //#[lnp_api(type = 0x0301)]
-    //XPriv(::lnpbp::bitcoin::util::bip32::ExtendedPrivKey),
 
-    //#[lnp_api(type = 0x0303)]
-    //XPub(::lnpbp::bitcoin::util::bip32::ExtendedPubKey),
+    #[lnp_api(type = 0x0102)]
+    AccountInfo(crate::api::types::AccountInfo),
+
+    #[lnp_api(type = 0x0300)]
+    XPriv(::lnpbp::bitcoin::util::bip32::ExtendedPrivKey),
+
+    #[lnp_api(type = 0x0302)]
+    XPub(::lnpbp::bitcoin::util::bip32::ExtendedPubKey),
+
+    #[lnp_api(type = 0x0500)]
+    Signature(::lnpbp::bitcoin::secp256k1::Signature),
+
+    #[lnp_api(type = 0x0502)]
+    Psbt(::lnpbp::bitcoin::util::psbt::PartiallySignedTransaction),
 }
 
 impl From<Error> for Reply {

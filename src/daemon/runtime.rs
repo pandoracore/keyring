@@ -100,7 +100,12 @@ impl Runtime {
         match message {
             Request::Seed(seed) => self.rpc_seed_create(seed).await,
             Request::List => self.rpc_list().await,
-            _ => unimplemented!(),
+            Request::Derive(derive) => self.rpc_derive(derive).await,
+            Request::ExportXpub(export) => self.rpc_export_xpub(export).await,
+            Request::ExportXpriv(export) => self.rpc_export_xpriv(export).await,
+            Request::SignPsbt(sign) => self.rpc_sign_psbt(sign).await,
+            Request::SignKey(sign) => self.rpc_sign_key(sign).await,
+            Request::SignData(sign) => self.rpc_sign_data(sign).await,
         }
     }
 
@@ -125,5 +130,69 @@ impl Runtime {
         let accounts = self.vault.lock().await.list()?;
         trace!("Vault lock released");
         Ok(Reply::Keylist(accounts))
+    }
+
+    async fn rpc_derive(
+        &mut self,
+        mut derive: message::Derive,
+    ) -> Result<Reply, Reply> {
+        trace!("Awaiting for the vault lock");
+        let account = self.vault.lock().await.derive(
+            derive.from,
+            derive.path,
+            derive.name,
+            derive.details,
+            derive.assets,
+            &mut derive.decryption_key,
+        )?;
+        trace!("Vault lock released");
+        Ok(Reply::AccountInfo(account))
+    }
+
+    async fn rpc_export_xpub(
+        &mut self,
+        export: message::Export,
+    ) -> Result<Reply, Reply> {
+        trace!("Awaiting for the vault lock");
+        let key = self.vault.lock().await.xpub(export.key_id)?;
+        trace!("Vault lock released");
+        Ok(Reply::XPub(key))
+    }
+
+    async fn rpc_export_xpriv(
+        &mut self,
+        export: message::Export,
+    ) -> Result<Reply, Reply> {
+        trace!("Awaiting for the vault lock");
+        let key = self.vault.lock().await.xpriv(export.key_id)?;
+        trace!("Vault lock released");
+        Ok(Reply::XPriv(key))
+    }
+
+    async fn rpc_sign_psbt(
+        &mut self,
+        psbt: message::SignPsbt,
+    ) -> Result<Reply, Reply> {
+        trace!("Awaiting for the vault lock");
+        trace!("Vault lock released");
+        unimplemented!()
+    }
+
+    async fn rpc_sign_key(
+        &mut self,
+        psbt: message::SignKey,
+    ) -> Result<Reply, Reply> {
+        trace!("Awaiting for the vault lock");
+        trace!("Vault lock released");
+        unimplemented!()
+    }
+
+    async fn rpc_sign_data(
+        &mut self,
+        psbt: message::SignData,
+    ) -> Result<Reply, Reply> {
+        trace!("Awaiting for the vault lock");
+        trace!("Vault lock released");
+        unimplemented!()
     }
 }

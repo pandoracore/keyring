@@ -12,7 +12,7 @@
 // If not, see <https://www.gnu.org/licenses/agpl-3.0-standalone.html>.
 
 use lnpbp::bitcoin::hashes::hex::{FromHex, ToHex};
-use lnpbp::bitcoin::util::bip32::{DerivationPath, KeyApplications};
+use lnpbp::bitcoin::util::bip32::{DerivationPath, KeyApplication};
 use lnpbp::bitcoin::XpubIdentifier;
 use lnpbp::bp::Chain;
 use lnpbp::service::Exec;
@@ -35,16 +35,16 @@ where
 #[display_from(Debug)]
 pub struct EnumReprError;
 
-impl TryFromStr for KeyApplications {
+impl TryFromStr for KeyApplication {
     type Error = EnumReprError;
     fn try_from_str(s: &str) -> Result<Self, Self::Error> {
         Ok(match s.to_lowercase().as_str() {
-            "pkh" => KeyApplications::Legacy,
-            "sh" => KeyApplications::Legacy,
-            "wpkh" => KeyApplications::SegWitV0Singlesig,
-            "wsh" => KeyApplications::SegWitV0Miltisig,
-            "wpkh-sh" => KeyApplications::SegWitLegacySinglesig,
-            "wsh-sh" => KeyApplications::SegWitLegacyMultisig,
+            "pkh" => KeyApplication::Legacy,
+            "sh" => KeyApplication::Legacy,
+            "wpkh" => KeyApplication::SegWitV0Singlesig,
+            "wsh" => KeyApplication::SegWitV0Miltisig,
+            "wpkh-sh" => KeyApplication::SegWitLegacySinglesig,
+            "wsh-sh" => KeyApplication::SegWitLegacyMultisig,
             _ => Err(EnumReprError)?,
         })
     }
@@ -102,8 +102,8 @@ pub enum SeedCommand {
 
         /// Application scope. Possible values are:
         /// pkh, sh, wpkh, wsh, wpkh-sh, wsh-sh
-        #[clap(parse(try_from_str = KeyApplications::try_from_str))]
-        application: KeyApplications,
+        #[clap(parse(try_from_str = KeyApplication::try_from_str))]
+        application: KeyApplication,
 
         /// Name for newly generated account with a seed phrase
         #[clap()]
@@ -275,7 +275,7 @@ impl SeedCommand {
         name: String,
         description: Option<String>,
         chain: Chain,
-        application: KeyApplications,
+        application: KeyApplication,
     ) -> Result<(), api::Error> {
         debug!("Creating new seed");
         let reply =

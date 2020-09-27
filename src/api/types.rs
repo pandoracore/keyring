@@ -11,8 +11,16 @@
 // along with this software.
 // If not, see <https://www.gnu.org/licenses/agpl-3.0-standalone.html>.
 
+use std::collections::HashSet;
+
 use lnpbp::bitcoin::hash_types::XpubIdentifier;
-use lnpbp::bitcoin::util::bip32::{ExtendedPubKey, KeySource};
+use lnpbp::bitcoin::util::bip32::KeySource;
+use lnpbp::bp::chain::AssetId;
+
+use crate::vault::{Keyring, KeysAccount};
+use lnpbp::miniscript::bitcoin::util::bip32::{
+    DefaultResolver, Fingerprint, KeyApplication,
+};
 
 pub type AuthCode = u32;
 
@@ -33,6 +41,39 @@ pub struct AccountInfo {
     pub id: XpubIdentifier,
     pub name: String,
     pub details: Option<String>,
-    pub master_xpubkey: ExtendedPubKey,
+    pub key_id: XpubIdentifier,
+    pub fingerprint: Fingerprint,
+    pub assets: HashSet<AssetId>,
+    pub application: Option<KeyApplication>,
     pub key_source: Option<KeySource>,
+}
+
+impl From<&Keyring> for AccountInfo {
+    fn from(keyring: &Keyring) -> Self {
+        let mut info = AccountInfo::from(keyring.master_account());
+        info.key_source = keyring.key_source().clone();
+        info
+    }
+}
+
+impl From<&KeysAccount> for AccountInfo {
+    fn from(account: &KeysAccount) -> Self {
+        let details = match account.details().len() {
+            0 => None,
+            _ => Some(account.details().clone()),
+        };
+        Self {
+            id: account.identifier(),
+            name: account.name().clone(),
+            details,
+            key_id: account.identifier(),
+            fingerprint: account.fingerprint(),
+            application: account
+                .xpubkey()
+                .version
+                .application::<DefaultResolver>(),
+            assets: account.assets().clone(),
+            key_source: None,
+        }
+    }
 }

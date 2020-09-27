@@ -34,7 +34,7 @@ use lnpbp::bitcoin::hashes::hex::{FromHex, ToHex};
 use lnpbp::bitcoin::secp256k1;
 use lnpbp::bitcoin::util::bip32::{
     self, DefaultResolver, DerivationPath, ExtendedPrivKey, ExtendedPubKey,
-    Fingerprint, IntoDerivationPath, KeyApplications, KeySource,
+    Fingerprint, IntoDerivationPath, KeyApplication, KeySource,
     VersionResolver,
 };
 use lnpbp::bitcoin::XpubIdentifier;
@@ -200,7 +200,7 @@ impl Keyring {
     ///
     /// use std::str::FromStr;
     /// use lnpbp::bitcoin::secp256k1;
-    /// use lnpbp::bitcoin::util::bip32::KeyApplications;
+    /// use lnpbp::bitcoin::util::bip32::KeyApplication;
     /// use lnpbp::bp::Chain;
     ///
     /// let keyring = loop {
@@ -208,7 +208,7 @@ impl Keyring {
     ///         "Main account",
     ///         "Default",
     ///         &Chain::Mainnet,
-    ///         KeyApplications::SegWitV0Singlesig,
+    ///         KeyApplication::SegWitV0Singlesig,
     ///         None,
     ///         secp256k1::PublicKey::from_str(
     ///             "03933615cab8f016c8375602884804b56061bcdd8fe362eb7e12c87d61c5275c5f"
@@ -222,7 +222,7 @@ impl Keyring {
         name: impl ToString,
         details: impl ToString,
         chain: &Chain,
-        application: KeyApplications,
+        application: KeyApplication,
         key_source: Option<KeySource>,
         encryption_key: secp256k1::PublicKey,
     ) -> Result<Self, Error> {
@@ -266,6 +266,22 @@ impl Keyring {
         &self.master_account.xpubkey
     }
 
+    /// Returns [`KeysAccount`] for a given `key_id`, or [`Option::None`] if
+    /// account does not exist under the current keyring
+    pub fn account_by_id(
+        &self,
+        key_id: XpubIdentifier,
+    ) -> Option<&KeysAccount> {
+        if self.identifier() == key_id {
+            Some(&self.master_account)
+        } else {
+            self.sub_accounts
+                .iter()
+                .find(|(_, account)| account.identifier() == key_id)
+                .map(|v| v.1)
+        }
+    }
+
     /// Creates new sub-account and does all required derivation for a given
     /// derivation path [`DerivationPath`] and a list of assets identified by
     /// respective [`AssetId`] (may be empty). Returns derivation error if the
@@ -280,7 +296,7 @@ impl Keyring {
     ///
     /// use keyring::vault::keymgm::{Error, Keyring, KeysAccount, UpdateMode};
     /// use lnpbp::bitcoin::secp256k1;
-    /// use lnpbp::bitcoin::util::bip32::{DerivationPath, KeyApplications};
+    /// use lnpbp::bitcoin::util::bip32::{DerivationPath, KeyApplication};
     /// use lnpbp::bp::Chain;
     /// use std::str::FromStr;
     ///
@@ -288,7 +304,7 @@ impl Keyring {
     /// let keyring = Keyring::with(
     ///     "Sample", "",
     ///     &Chain::Mainnet,
-    ///     KeyApplications::SegWitV0Singlesig,
+    ///     KeyApplication::SegWitV0Singlesig,
     ///     None,
     ///     secp256k1::PublicKey::from_str(
     ///         "03933615cab8f016c8375602884804b56061bcdd8fe362eb7e12c87d61c5275c5f"
@@ -438,7 +454,7 @@ impl Keyring {
     /// # extern crate amplify;
     /// use keyring::vault::keymgm::{Error, Keyring, KeysAccount, UpdateMode};
     /// use lnpbp::bitcoin::secp256k1;
-    /// use lnpbp::bitcoin::util::bip32::{DerivationPath, KeyApplications};
+    /// use lnpbp::bitcoin::util::bip32::{DerivationPath, KeyApplication};
     /// use lnpbp::bp::Chain;
     /// use std::str::FromStr;
     ///
@@ -446,7 +462,7 @@ impl Keyring {
     /// let keyring = Keyring::with(
     ///     "Sample", "",
     ///     &Chain::Mainnet,
-    ///     KeyApplications::SegWitV0Singlesig,
+    ///     KeyApplication::SegWitV0Singlesig,
     ///     None,
     ///     secp256k1::PublicKey::from_str(
     ///         "03933615cab8f016c8375602884804b56061bcdd8fe362eb7e12c87d61c5275c5f"
@@ -489,7 +505,7 @@ impl Keyring {
     /// # extern crate amplify;
     /// # use keyring::vault::keymgm::{Error, Keyring, KeysAccount, UpdateMode};
     /// # use lnpbp::bitcoin::secp256k1;
-    /// # use lnpbp::bitcoin::util::bip32::{DerivationPath, KeyApplications};
+    /// # use lnpbp::bitcoin::util::bip32::{DerivationPath, KeyApplication};
     /// # use lnpbp::bp::Chain;
     /// # use std::str::FromStr;
     /// #
@@ -498,7 +514,7 @@ impl Keyring {
     /// # let keyring = Keyring::with(
     /// #     "Sample", "",
     /// #     &Chain::Mainnet,
-    /// #     KeyApplications::SegWitV0Singlesig,
+    /// #     KeyApplication::SegWitV0Singlesig,
     /// #     None,
     /// #     secp256k1::PublicKey::from_str(
     /// #         "03933615cab8f016c8375602884804b56061bcdd8fe362eb7e12c87d61c5275c5f"
@@ -649,7 +665,7 @@ impl KeysAccount {
         details: impl ToString,
         assets: HashSet<AssetId>,
         chain: &Chain,
-        application: KeyApplications,
+        application: KeyApplication,
         encryption_key: secp256k1::PublicKey,
     ) -> Result<Self, Error> {
         let mut random = [0u8; 32];
