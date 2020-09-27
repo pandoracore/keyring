@@ -41,6 +41,7 @@ use lnpbp::bitcoin::XpubIdentifier;
 use lnpbp::bp::chain::AssetId;
 use lnpbp::bp::Chain;
 use lnpbp::elgamal;
+use lnpbp::miniscript::bitcoin::secp256k1::Signature;
 use secp256k1::rand::{thread_rng, RngCore};
 
 /// Error cases related to keyring & keys account management and usage
@@ -757,8 +758,8 @@ impl KeysAccount {
             &mut blinding,
         )?;
         // Instantly wiping out xpriv and blinding data
-        master_xpriv.private_key.key.add_assign(&random)?;
         thread_rng().fill_bytes(&mut random);
+        master_xpriv.private_key.key.add_assign(&random)?;
 
         Ok(Self {
             xpubkey,
@@ -833,6 +834,42 @@ impl KeysAccount {
         }
 
         Ok(count)
+    }
+
+    /// Produced signature for a given byte string `message`
+    pub fn sign_digest<H>(
+        &self,
+        digest: H,
+        decryption_key: &mut secp256k1::SecretKey,
+    ) -> Result<Signature, Error>
+    where
+        // TODO: add `<LEN=secp256k::MESSAGE_SIZE>` later when <https://github.com/rust-lang/rust/issues/70256> will be solved
+        H: bitcoin::hashes::Hash,
+    {
+        let mut random = [0u8; 32];
+
+        // Decrypting private key & clearing decryption key
+        let mut secret_data =
+            elgamal::decrypt(&self.encrypted, decryption_key, self.unblinding)?;
+
+        // Instantly wiping our decryption key
+        thread_rng().fill_bytes(&mut random);
+        decryption_key.add_assign(&random)?;
+
+        let mut xprivkey =
+            ExtendedPrivKey::<DefaultResolver>::decode(&secret_data)?;
+        // Wiping out secred data
+        thread_rng().fill_bytes(&mut secret_data);
+
+        let signature = lnpbp::SECP256K1.sign(
+            &secp256k1::Message::from_slice(&digest[..])?,
+            &xprivkey.private_key.key,
+        );
+
+        thread_rng().fill_bytes(&mut random);
+        xprivkey.private_key.key.add_assign(&random)?;
+
+        Ok(signature)
     }
 }
 
