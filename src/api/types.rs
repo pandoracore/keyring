@@ -12,12 +12,20 @@
 // If not, see <https://www.gnu.org/licenses/agpl-3.0-standalone.html>.
 
 use lnpbp::bitcoin::hash_types::XpubIdentifier;
-use lnpbp::bitcoin::util::bip32::{DerivationPath, ExtendedPubKey, Fingerprint};
+use lnpbp::bitcoin::util::bip32::{ExtendedPubKey, KeySource};
 
 pub type AuthCode = u32;
 
 #[derive(
-    Clone, PartialEq, Eq, Debug, Display, StrictEncode, StrictDecode, Serialize, Deserialize,
+    Clone,
+    PartialEq,
+    Eq,
+    Debug,
+    Display,
+    StrictEncode,
+    StrictDecode,
+    Serialize,
+    Deserialize,
 )]
 #[display_from(Debug)]
 #[non_exhaustive]
@@ -25,7 +33,6 @@ pub struct AccountInfo {
     pub id: XpubIdentifier,
     pub name: String,
     pub details: Option<String>,
-    pub xpubkey: ExtendedPubKey,
-    pub path: Option<DerivationPath>,
-    pub fingerprint: Fingerprint,
+    pub master_xpubkey: ExtendedPubKey,
+    pub key_source: Option<KeySource>,
 }

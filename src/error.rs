@@ -95,4 +95,8 @@ pub enum RuntimeError {
     #[cfg(feature = "daemon")]
     #[derive_from]
     VaultDriver(vault::driver::Error),
+
+    #[cfg(feature = "daemon")]
+    #[derive_from]
+    KeyManagement(vault::keymgm::Error),
 }

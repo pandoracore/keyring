@@ -14,7 +14,7 @@
 use lnpbp::bitcoin::hashes::hex::{FromHex, ToHex};
 use lnpbp::bitcoin::util::bip32::{DerivationPath, KeyApplications};
 use lnpbp::bitcoin::XpubIdentifier;
-use lnpbp::bp::Chains;
+use lnpbp::bp::Chain;
 use lnpbp::service::Exec;
 use lnpbp::strict_encoding::strict_encode;
 
@@ -98,7 +98,7 @@ pub enum SeedCommand {
     Create {
         /// Target chain for the key
         #[clap()]
-        chain: Chains,
+        chain: Chain,
 
         /// Application scope. Possible values are:
         /// pkh, sh, wpkh, wsh, wpkh-sh, wsh-sh
@@ -191,7 +191,9 @@ impl Exec for Command {
             Command::Seed { subcommand } => subcommand.exec(runtime),
             Command::Xpubkey { subcommand } => subcommand.exec(runtime),
             Command::Xprivkey { subcommand } => subcommand.exec(runtime),
-            Command::Sign { in_file, out_file } => self.exec_sign(runtime, in_file, out_file),
+            Command::Sign { in_file, out_file } => {
+                self.exec_sign(runtime, in_file, out_file)
+            }
         }
     }
 }
@@ -216,7 +218,9 @@ impl Exec for SeedCommand {
                 *application,
             ),
             SeedCommand::Import { id } => self.exec_import(runtime, id),
-            SeedCommand::Export { id, file } => self.exec_export(runtime, id, file),
+            SeedCommand::Export { id, file } => {
+                self.exec_export(runtime, id, file)
+            }
         }
     }
 }
@@ -229,8 +233,12 @@ impl Exec for XPubkeyCommand {
     fn exec(&self, runtime: &mut Runtime) -> Result<(), Self::Error> {
         match self {
             XPubkeyCommand::List { format } => self.exec_list(runtime, format),
-            XPubkeyCommand::Derive { id, path } => self.exec_derive(runtime, id, path),
-            XPubkeyCommand::Export { id, file } => self.exec_export(runtime, id, file),
+            XPubkeyCommand::Derive { id, path } => {
+                self.exec_derive(runtime, id, path)
+            }
+            XPubkeyCommand::Export { id, file } => {
+                self.exec_export(runtime, id, file)
+            }
         }
     }
 }
@@ -242,7 +250,9 @@ impl Exec for XPrivkeyCommand {
     #[inline]
     fn exec(&self, runtime: &mut Runtime) -> Result<(), Self::Error> {
         match self {
-            XPrivkeyCommand::Export { id, file } => self.exec_export(runtime, id, file),
+            XPrivkeyCommand::Export { id, file } => {
+                self.exec_export(runtime, id, file)
+            }
         }
     }
 }
@@ -264,17 +274,18 @@ impl SeedCommand {
         runtime: &mut Runtime,
         name: String,
         description: Option<String>,
-        chain: Chains,
+        chain: Chain,
         application: KeyApplications,
     ) -> Result<(), api::Error> {
         debug!("Creating new seed");
-        let reply = runtime.request(api::Request::Seed(api::message::Seed {
-            auth_code: 0,
-            name,
-            chain,
-            application,
-            description,
-        }))?;
+        let reply =
+            runtime.request(api::Request::Seed(api::message::Seed {
+                auth_code: 0,
+                name,
+                chain,
+                application,
+                description,
+            }))?;
         match reply {
             Reply::Success => {
                 info!("New seed created");
@@ -304,7 +315,11 @@ impl SeedCommand {
 }
 
 impl XPubkeyCommand {
-    pub fn exec_list(&self, runtime: &mut Runtime, format: &DataFormat) -> Result<(), api::Error> {
+    pub fn exec_list(
+        &self,
+        runtime: &mut Runtime,
+        format: &DataFormat,
+    ) -> Result<(), api::Error> {
         const ERR: &'static str = "Error formatting data";
 
         debug!("Listing known accounts/extended public keys");
@@ -312,10 +327,16 @@ impl XPubkeyCommand {
         match reply {
             Reply::Keylist(accounts) => {
                 let result = match format {
-                    DataFormat::Json => serde_json::to_string(&accounts).expect(ERR),
-                    DataFormat::Yaml => serde_yaml::to_string(&accounts).expect(ERR),
+                    DataFormat::Json => {
+                        serde_json::to_string(&accounts).expect(ERR)
+                    }
+                    DataFormat::Yaml => {
+                        serde_yaml::to_string(&accounts).expect(ERR)
+                    }
                     DataFormat::Toml => toml::to_string(&accounts).expect(ERR),
-                    DataFormat::StrictHex => strict_encode(&accounts).expect(ERR).to_hex(),
+                    DataFormat::StrictHex => {
+                        strict_encode(&accounts).expect(ERR).to_hex()
+                    }
                     DataFormat::StrictBase64 => {
                         base64::encode(strict_encode(&accounts).expect(ERR))
                     }
@@ -323,7 +344,9 @@ impl XPubkeyCommand {
                 println!("{}", result);
                 Ok(())
             }
-            Reply::Failure(failure) => Err(api::Error::ServerFailure(failure.clone())),
+            Reply::Failure(failure) => {
+                Err(api::Error::ServerFailure(failure.clone()))
+            }
             _ => Err(api::Error::UnexpectedServerResponse),
         }
     }

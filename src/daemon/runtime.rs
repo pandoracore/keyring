@@ -104,12 +104,15 @@ impl Runtime {
         }
     }
 
-    async fn rpc_seed_create(&mut self, seed: message::Seed) -> Result<Reply, Reply> {
+    async fn rpc_seed_create(
+        &mut self,
+        seed: message::Seed,
+    ) -> Result<Reply, Reply> {
         trace!("Awaiting for the vault lock");
         self.vault.lock().await.seed(
             seed.name,
             seed.description,
-            seed.chain,
+            &seed.chain,
             seed.application,
             self.config.node_id(),
         )?;

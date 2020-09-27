@@ -13,7 +13,11 @@
 
 #![allow(dead_code)]
 #![feature(never_type, with_options)]
+#![feature(map_first_last)]
 
+#[cfg(feature = "daemon")]
+#[macro_use]
+extern crate amplify;
 #[cfg(feature = "daemon")]
 #[macro_use]
 extern crate amplify_derive;
@@ -53,7 +57,7 @@ pub mod error;
 #[cfg(any(feature = "integration", feature = "server"))]
 pub mod i9n;
 #[cfg(feature = "daemon")]
-pub(crate) mod vault;
+pub mod vault;
 
 #[cfg(any(feature = "integration", feature = "server"))]
 pub use constants::*;

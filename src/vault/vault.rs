@@ -13,8 +13,10 @@
 
 use lnpbp::bitcoin::hash_types::XpubIdentifier;
 use lnpbp::bitcoin::secp256k1::{PublicKey, SecretKey};
-use lnpbp::bitcoin::util::bip32::{DerivationPath, ExtendedPubKey, KeyApplications};
-use lnpbp::bp::Chains;
+use lnpbp::bitcoin::util::bip32::{
+    DerivationPath, ExtendedPubKey, KeyApplications,
+};
+use lnpbp::bp::Chain;
 
 use super::{driver, Driver, FileDriver, Keyring};
 use crate::api::types::AccountInfo;
@@ -49,12 +51,11 @@ impl Vault {
                     _ => Some(account.details().clone()),
                 };
                 AccountInfo {
-                    id: account.id(),
+                    id: account.identifier(),
                     name: account.name().clone(),
                     details,
-                    xpubkey: account.xpubkey().clone(),
-                    path: account.derivation().clone(),
-                    fingerprint: account.fingerprint(),
+                    master_xpubkey: account.master_xpubkey().clone(),
+                    key_source: account.key_source().clone(),
                 }
             })
             .collect())
@@ -64,23 +65,19 @@ impl Vault {
         &mut self,
         name: String,
         description: Option<String>,
-        chain: Chains,
+        chain: &Chain,
         application: KeyApplications,
         encryption_key: PublicKey,
     ) -> Result<(), RuntimeError> {
         let description = description.unwrap_or("".to_string());
-        let account = loop {
-            if let Some(kr) = Keyring::new(
-                name.clone(),
-                description.clone(),
-                chain.clone(),
-                application,
-                None,
-                encryption_key,
-            ) {
-                break kr;
-            }
-        };
+        let account = Keyring::with(
+            name.clone(),
+            description.clone(),
+            chain,
+            application,
+            None,
+            encryption_key,
+        )?;
         self.accounts.push(account);
         trace!(
             "New account created from a seed; total number of accounts {}",
@@ -98,7 +95,10 @@ impl Vault {
         unimplemented!()
     }
 
-    pub fn xpub(&self, _id: XpubIdentifier) -> Result<ExtendedPubKey, RuntimeError> {
+    pub fn xpub(
+        &self,
+        _id: XpubIdentifier,
+    ) -> Result<ExtendedPubKey, RuntimeError> {
         unimplemented!()
     }
 
