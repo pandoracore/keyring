@@ -135,14 +135,19 @@ impl Vault {
         &self,
         id: XpubIdentifier,
     ) -> Result<ExtendedPubKey, RuntimeError> {
-        unimplemented!()
+        Ok(*self.account_by_id(id).ok_or(Error::NotFound)?.xpubkey())
     }
 
     pub fn xpriv(
         &self,
         id: XpubIdentifier,
+        mut decryption_key: &mut SecretKey,
     ) -> Result<ExtendedPrivKey, RuntimeError> {
-        unimplemented!()
+        Ok(self
+            .account_by_id(id)
+            .ok_or(Error::NotFound)?
+            .xprivkey(&mut decryption_key)?
+            .clone())
     }
 
     pub fn rpc_sign_psbt(&self) -> Result<ExtendedPrivKey, RuntimeError> {

@@ -725,7 +725,7 @@ impl KeysAccount {
         name: impl ToString,
         details: impl ToString,
         assets: HashSet<AssetId>,
-        decryption_key: &mut secp256k1::SecretKey,
+        mut decryption_key: &mut secp256k1::SecretKey,
     ) -> Result<KeysAccount, Error> {
         let derivation = derivation.into_derivation_path()?;
 
@@ -737,16 +737,7 @@ impl KeysAccount {
             decryption_key,
         );
 
-        // Decrypting private key & clearing decryption key
-        let mut secret_data =
-            elgamal::decrypt(&self.encrypted, decryption_key, self.unblinding)?;
-        // Instantly wiping our decryption key
-        thread_rng().fill_bytes(&mut random);
-        decryption_key.add_assign(&random)?;
-
-        let mut master_xpriv = ExtendedPrivKey::decode(&secret_data)?;
-        // Wiping out secred data
-        thread_rng().fill_bytes(&mut secret_data);
+        let mut master_xpriv = self.xprivkey(&mut decryption_key)?;
         let master_xpub =
             ExtendedPubKey::from_private(&lnpbp::SECP256K1, &master_xpriv)
                 .ok_or(Error::ResolverFailure)?;
@@ -797,6 +788,32 @@ impl KeysAccount {
         self.xpubkey.fingerprint()
     }
 
+    /// Returns extended private key by decrypting it's data using
+    /// `decryption_key`, clearing it's content after
+    pub fn xprivkey(
+        &self,
+        decryption_key: &mut secp256k1::SecretKey,
+    ) -> Result<ExtendedPrivKey, Error> {
+        let mut random = [0u8; 32];
+
+        // Decrypting private key & clearing decryption key
+        let mut secret_data =
+            elgamal::decrypt(&self.encrypted, decryption_key, self.unblinding)?;
+
+        // Instantly wiping our decryption key
+        thread_rng().fill_bytes(&mut random);
+        decryption_key.add_assign(&random)?;
+
+        let xprivkey =
+            ExtendedPrivKey::<DefaultResolver>::decode(&secret_data)?;
+        // Wiping out secred data
+        thread_rng().fill_bytes(&mut secret_data);
+
+        Ok(xprivkey)
+    }
+
+    /// Updates information inside keys account. For information on the
+    /// function check [`Keyring::update_subaccount()`]
     pub(crate) fn update(
         &mut self,
         name: Option<impl ToString>,
@@ -856,7 +873,7 @@ impl KeysAccount {
     pub fn sign_digest<H>(
         &self,
         digest: H,
-        decryption_key: &mut secp256k1::SecretKey,
+        mut decryption_key: &mut secp256k1::SecretKey,
     ) -> Result<Signature, Error>
     where
         // TODO: add `<LEN=secp256k::MESSAGE_SIZE>` later when <https://github.com/rust-lang/rust/issues/70256> will be solved
@@ -864,18 +881,7 @@ impl KeysAccount {
     {
         let mut random = [0u8; 32];
 
-        // Decrypting private key & clearing decryption key
-        let mut secret_data =
-            elgamal::decrypt(&self.encrypted, decryption_key, self.unblinding)?;
-
-        // Instantly wiping our decryption key
-        thread_rng().fill_bytes(&mut random);
-        decryption_key.add_assign(&random)?;
-
-        let mut xprivkey =
-            ExtendedPrivKey::<DefaultResolver>::decode(&secret_data)?;
-        // Wiping out secred data
-        thread_rng().fill_bytes(&mut secret_data);
+        let mut xprivkey = self.xprivkey(&mut decryption_key)?;
 
         let signature = lnpbp::SECP256K1.sign(
             &secp256k1::Message::from_slice(&digest[..])?,

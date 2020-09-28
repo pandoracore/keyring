@@ -43,6 +43,7 @@ pub struct Seed {
 #[display_from(Debug)]
 pub struct Export {
     pub key_id: XpubIdentifier,
+    pub decryption_key: SecretKey,
     pub auth_code: AuthCode,
 }
 

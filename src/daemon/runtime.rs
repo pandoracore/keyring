@@ -11,6 +11,7 @@
 // along with this software.
 // If not, see <https://www.gnu.org/licenses/agpl-3.0-standalone.html>.
 
+use std::any::Any;
 use std::sync::Arc;
 use tokio::sync::Mutex;
 
@@ -94,9 +95,9 @@ impl Runtime {
     }
 
     async fn rpc_process(&mut self, raw: Vec<u8>) -> Result<Reply, Reply> {
-        trace!("Got {} bytes over ZMQ RPC: {:?}", raw.len(), raw);
+        trace!("Got {} bytes over ZMQ RPC", raw.len());
         let message = (&*self.unmarshaller.unmarshall(&raw)?).clone();
-        debug!("Received ZMQ RPC request: {:?}", message);
+        debug!("Received ZMQ RPC request: {:?}", message.type_id());
         match message {
             Request::Seed(seed) => self.rpc_seed_create(seed).await,
             Request::List => self.rpc_list().await,
@@ -161,10 +162,14 @@ impl Runtime {
 
     async fn rpc_export_xpriv(
         &mut self,
-        export: message::Export,
+        mut export: message::Export,
     ) -> Result<Reply, Reply> {
         trace!("Awaiting for the vault lock");
-        let key = self.vault.lock().await.xpriv(export.key_id)?;
+        let key = self
+            .vault
+            .lock()
+            .await
+            .xpriv(export.key_id, &mut export.decryption_key)?;
         trace!("Vault lock released");
         Ok(Reply::XPriv(key))
     }
