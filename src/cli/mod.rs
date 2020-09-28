@@ -13,6 +13,7 @@
 
 mod command;
 mod config;
+pub mod format;
 mod runtime;
 
 pub use command::Command;

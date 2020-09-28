@@ -15,16 +15,15 @@
 #![feature(never_type, with_options)]
 #![feature(map_first_last)]
 
-#[cfg(feature = "daemon")]
+#[cfg(any(feature = "daemon"))]
 #[macro_use]
 extern crate amplify;
-#[cfg(feature = "daemon")]
 #[macro_use]
 extern crate amplify_derive;
-#[cfg(feature = "server")]
+#[cfg(any(feature = "daemon"))]
 #[macro_use]
 extern crate async_trait;
-#[cfg(feature = "daemon")]
+#[cfg(any(feature = "daemon"))]
 #[macro_use]
 extern crate lazy_static;
 #[macro_use]
@@ -48,18 +47,18 @@ extern crate settings;
 pub mod api;
 #[cfg(feature = "cli")]
 pub mod cli;
-#[cfg(any(feature = "integration", feature = "server"))]
+#[cfg(any(feature = "integration", feature = "daemon"))]
 pub mod constants;
 #[cfg(feature = "daemon")]
 pub mod daemon;
-#[cfg(any(feature = "integration", feature = "server"))]
+#[cfg(any(feature = "integration", feature = "daemon"))]
 pub mod error;
-#[cfg(any(feature = "integration", feature = "server"))]
+#[cfg(any(feature = "integration", feature = "daemon"))]
 pub mod i9n;
 #[cfg(feature = "daemon")]
 pub mod vault;
 
-#[cfg(any(feature = "integration", feature = "server"))]
+#[cfg(any(feature = "integration", feature = "daemon"))]
 pub use constants::*;
 #[cfg(feature = "daemon")]
 pub use vault::Vault;

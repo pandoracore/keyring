@@ -11,6 +11,8 @@
 // along with this software.
 // If not, see <https://www.gnu.org/licenses/agpl-3.0-standalone.html>.
 
+use std::path::PathBuf;
+
 use lnpbp::bitcoin::hashes::hex::{FromHex, ToHex};
 use lnpbp::bitcoin::util::bip32::{DerivationPath, KeyApplication};
 use lnpbp::bitcoin::XpubIdentifier;
@@ -18,6 +20,7 @@ use lnpbp::bp::Chain;
 use lnpbp::service::Exec;
 use lnpbp::strict_encoding::strict_encode;
 
+use super::format;
 use super::Runtime;
 use crate::api;
 use crate::api::Reply;
@@ -75,21 +78,25 @@ pub enum Command {
     },
 
     /// Operations with extended public keys
-    Xpubkey {
+    Xpub {
         /// Subcommand specifying particular operation
         #[clap(subcommand)]
         subcommand: XPubkeyCommand,
     },
 
     /// Operations with extended private keys
-    Xprivkey {
+    Xpriv {
         /// Subcommand specifying particular operation
         #[clap(subcommand)]
         subcommand: XPrivkeyCommand,
     },
 
     /// Signs given PSBT bitcoin transaction with the matching keys
-    Sign { in_file: String, out_file: String },
+    Sign {
+        /// Subcommand specifying particular type of signatyre
+        #[clap(subcommand)]
+        subcommand: SignCommand,
+    },
 }
 
 #[derive(Clap, Clone, Debug, Display)]
@@ -132,7 +139,7 @@ pub enum SeedCommand {
 pub enum XPubkeyCommand {
     List {
         #[clap(short, long, arg_enum, default_value = "yaml")]
-        format: DataFormat,
+        format: format::StructuredData,
     },
 
     Derive {
@@ -163,22 +170,38 @@ pub enum XPrivkeyCommand {
 
 #[derive(Clap, Clone, Debug, Display)]
 #[display_from(Debug)]
-#[non_exhaustive]
-pub enum DataFormat {
-    /// JSON
-    Json,
+pub enum SignCommand {
+    /// Signs given PSBT
+    Psbt {
+        #[clap(short = 'f', long = "format", arg_enum, default_value)]
+        format: format::Psbt,
 
-    /// YAML
-    Yaml,
+        /// Input file to read PSBT from. If absent, and no `data` parameter
+        /// is provided, data are read from STDIN. The file and data must be in
+        /// a `format` format.
+        #[clap(short, long = "in")]
+        in_file: Option<PathBuf>,
 
-    /// TOML
-    Toml,
+        /// Data string containing PSBT encoded in hexadecimal format (must
+        /// contain even number of 0-9, A-f characters)
+        #[clap()]
+        data: Option<String>,
 
-    /// Strict encoding - hex representation
-    StrictHex,
+        /// Output file to save transcoded data. If absent, data are written to
+        /// STDOUT
+        #[clap(short, long = "out")]
+        out_file: Option<PathBuf>,
+    },
 
-    /// Strict encoding - base64 representation
-    StrictBase64,
+    File {},
+
+    Text {},
+
+    Key {
+        /// Key identifier for the signature
+        #[clap(parse(try_from_str = FromHex::from_hex))]
+        id: XpubIdentifier,
+    },
 }
 
 impl Exec for Command {
@@ -189,11 +212,9 @@ impl Exec for Command {
     fn exec(&self, runtime: &mut Runtime) -> Result<(), Self::Error> {
         match self {
             Command::Seed { subcommand } => subcommand.exec(runtime),
-            Command::Xpubkey { subcommand } => subcommand.exec(runtime),
-            Command::Xprivkey { subcommand } => subcommand.exec(runtime),
-            Command::Sign { in_file, out_file } => {
-                self.exec_sign(runtime, in_file, out_file)
-            }
+            Command::Xpub { subcommand } => subcommand.exec(runtime),
+            Command::Xpriv { subcommand } => subcommand.exec(runtime),
+            Command::Sign { subcommand } => subcommand.exec(runtime),
         }
     }
 }
@@ -257,14 +278,21 @@ impl Exec for XPrivkeyCommand {
     }
 }
 
-impl Command {
-    pub fn exec_sign(
-        &self,
-        _runtime: &mut Runtime,
-        _in_file: &str,
-        _out_file: &str,
-    ) -> Result<(), api::Error> {
-        unimplemented!()
+impl Exec for SignCommand {
+    type Runtime = Runtime;
+    type Error = api::Error;
+
+    #[inline]
+    fn exec(&self, runtime: &mut Runtime) -> Result<(), Self::Error> {
+        match self {
+            SignCommand::Psbt { .. } => {
+                unimplemented!()
+                //self.exec_sign_psbt(runtime)
+            }
+            SignCommand::File { .. } => unimplemented!(),
+            SignCommand::Text { .. } => unimplemented!(),
+            SignCommand::Key { .. } => unimplemented!(),
+        }
     }
 }
 
@@ -318,7 +346,7 @@ impl XPubkeyCommand {
     pub fn exec_list(
         &self,
         runtime: &mut Runtime,
-        format: &DataFormat,
+        format: &format::StructuredData,
     ) -> Result<(), api::Error> {
         const ERR: &'static str = "Error formatting data";
 
@@ -327,19 +355,22 @@ impl XPubkeyCommand {
         match reply {
             Reply::Keylist(accounts) => {
                 let result = match format {
-                    DataFormat::Json => {
+                    format::StructuredData::Json => {
                         serde_json::to_string(&accounts).expect(ERR)
                     }
-                    DataFormat::Yaml => {
+                    format::StructuredData::Yaml => {
                         serde_yaml::to_string(&accounts).expect(ERR)
                     }
-                    DataFormat::Toml => toml::to_string(&accounts).expect(ERR),
-                    DataFormat::StrictHex => {
+                    format::StructuredData::Toml => {
+                        toml::to_string(&accounts).expect(ERR)
+                    }
+                    format::StructuredData::StrictHex => {
                         strict_encode(&accounts).expect(ERR).to_hex()
                     }
-                    DataFormat::StrictBase64 => {
+                    format::StructuredData::StrictBase64 => {
                         base64::encode(strict_encode(&accounts).expect(ERR))
                     }
+                    _ => unimplemented!(),
                 };
                 println!("{}", result);
                 Ok(())
@@ -376,6 +407,17 @@ impl XPrivkeyCommand {
         _runtime: &mut Runtime,
         _id: &XpubIdentifier,
         _file: &str,
+    ) -> Result<(), api::Error> {
+        unimplemented!()
+    }
+}
+
+impl SignCommand {
+    pub fn exec_sign(
+        &self,
+        _runtime: &mut Runtime,
+        _in_file: &str,
+        _out_file: &str,
     ) -> Result<(), api::Error> {
         unimplemented!()
     }

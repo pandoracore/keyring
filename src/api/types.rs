@@ -15,12 +15,13 @@ use std::collections::HashSet;
 
 use lnpbp::bitcoin::hash_types::XpubIdentifier;
 use lnpbp::bitcoin::util::bip32::KeySource;
-use lnpbp::bp::chain::AssetId;
-
-use crate::vault::{Keyring, KeysAccount};
-use lnpbp::miniscript::bitcoin::util::bip32::{
+use lnpbp::bitcoin::util::bip32::{
     DefaultResolver, Fingerprint, KeyApplication,
 };
+use lnpbp::bp::chain::AssetId;
+
+#[cfg(feature = "daemon")]
+use crate::vault::{Keyring, KeysAccount};
 
 pub type AuthCode = u32;
 
@@ -48,6 +49,7 @@ pub struct AccountInfo {
     pub key_source: Option<KeySource>,
 }
 
+#[cfg(feature = "daemon")]
 impl From<&Keyring> for AccountInfo {
     fn from(keyring: &Keyring) -> Self {
         let mut info = AccountInfo::from(keyring.master_account());
@@ -56,6 +58,7 @@ impl From<&Keyring> for AccountInfo {
     }
 }
 
+#[cfg(feature = "daemon")]
 impl From<&KeysAccount> for AccountInfo {
     fn from(account: &KeysAccount) -> Self {
         let details = match account.details().len() {
