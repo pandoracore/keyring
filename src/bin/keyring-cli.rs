@@ -20,7 +20,7 @@ extern crate log;
 
 use clap::Clap;
 use log::LevelFilter;
-use std::env;
+use std::convert::TryInto;
 
 use lnpbp::service::Exec;
 
@@ -29,24 +29,12 @@ use keyring::error::BootstrapError;
 
 #[tokio::main]
 async fn main() -> Result<(), BootstrapError> {
-    let opts: Opts = Opts::parse();
-    let config: Config = opts.clone().into();
-
-    if env::var("RUST_LOG").is_err() {
-        env::set_var(
-            "RUST_LOG",
-            match opts.verbose {
-                0 => "error",
-                1 => "warn",
-                2 => "info",
-                3 => "debug",
-                4 => "trace",
-                _ => "trace",
-            },
-        );
-    }
-    env_logger::init();
     log::set_max_level(LevelFilter::Trace);
+    debug!("Command-line interface to the keyring daemon");
+
+    let opts: Opts = Opts::parse();
+    let config: Config = opts.clone().try_into()?;
+    config.apply();
 
     debug!("Command-line interface to the keyring daemon");
     let mut runtime = Runtime::init(config).await?;

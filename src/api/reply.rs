@@ -28,10 +28,10 @@ pub enum Reply {
     #[lnp_api(type = 0x0102)]
     Failure(crate::api::message::Failure),
 
-    #[lnp_api(type = 0x0100)]
+    #[lnp_api(type = 0x0200)]
     Keylist(Vec<crate::api::types::AccountInfo>),
 
-    #[lnp_api(type = 0x0102)]
+    #[lnp_api(type = 0x0202)]
     AccountInfo(crate::api::types::AccountInfo),
 
     #[lnp_api(type = 0x0300)]

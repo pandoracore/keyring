@@ -11,17 +11,17 @@
 // along with this software.
 // If not, see <https://www.gnu.org/licenses/agpl-3.0-standalone.html>.
 
+use ::clap::Clap;
 use ::core::convert::TryFrom;
 use ::core::fmt::Display;
 use ::core::str::FromStr;
+use ::num_traits::FromPrimitive;
 use ::settings::{self, Config as Settings, ConfigError};
 use ::std::env;
 use ::std::fs::File;
 use ::std::io::Write;
 use ::std::net::SocketAddr;
 use ::std::process::exit;
-use clap::Clap;
-use num_traits::FromPrimitive;
 
 use lnpbp::bitcoin::secp256k1;
 use lnpbp::lnp::transport::zmq::SocketLocator;
@@ -124,8 +124,8 @@ impl TryFrom<Opts> for Config {
                     error!("{}", ConfigError::Foreign(err));
                     eprintln!(
                         "Config file {} not found: please either specify a correct \
-                     configuration file path with `--config` argument or \
-                     init default config parameters with `--init`",
+                         configuration file path with `--config` argument or \
+                         init default config parameters with `--init`",
                         conf_file
                     );
                     exit(1);
@@ -220,7 +220,7 @@ impl Config {
     }
 
     pub fn node_id(&self) -> secp256k1::PublicKey {
-        secp256k1::PublicKey::from_secret_key(&SECP256K1, &self.node_key)
+        secp256k1::PublicKey::from_secret_key(&lnpbp::SECP256K1, &self.node_key)
     }
 }
 

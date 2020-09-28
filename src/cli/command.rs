@@ -14,6 +14,7 @@
 use std::path::PathBuf;
 
 use lnpbp::bitcoin::hashes::hex::{FromHex, ToHex};
+use lnpbp::bitcoin::secp256k1;
 use lnpbp::bitcoin::util::bip32::{DerivationPath, KeyApplication};
 use lnpbp::bitcoin::XpubIdentifier;
 use lnpbp::bp::Chain;
@@ -53,20 +54,20 @@ impl TryFromStr for KeyApplication {
     }
 }
 
-/// Command-line commands:
-/// ```text
-///     keyring-cli seed create
-///     keyring-cli seed import <fingerprint>
-///     keyring-cli seed export <fingerprint> <file>
-///
-///     keyring-cli xpubkey list [<fingerprint>]
-///     keyring-cli xpubkey derive <fingerprint> <derivation_path>
-///     keyring-cli xpubkey export <fingerprint> <file>
-///
-///     keyring-cli xprivkey export <fingerprint> <file>
-///     
-///     keyring-cli sign <in_file> <out_file>
-/// ```
+// Command-line commands:
+//
+//     keyring-cli seed create
+//     keyring-cli seed import <fingerprint>
+//     keyring-cli seed export <fingerprint> <file>
+//
+//     keyring-cli xpub list [<fingerprint>]
+//     keyring-cli xpub derive <fingerprint> <derivation_path>
+//     keyring-cli xpub export <fingerprint> <file>
+//
+//     keyring-cli xprivkey export <fingerprint> <file>
+//
+//     keyring-cli sign <in_file> <out_file>
+//
 #[derive(Clap, Clone, Debug, Display)]
 #[display(Debug)]
 pub enum Command {
@@ -102,6 +103,7 @@ pub enum Command {
 #[derive(Clap, Clone, Debug, Display)]
 #[display(Debug)]
 pub enum SeedCommand {
+    /// Creates new keyring with new seed and master key pair
     Create {
         /// Target chain for the key
         #[clap()]
@@ -142,6 +144,8 @@ pub enum XPubkeyCommand {
         format: format::StructuredData,
     },
 
+    /// Derives new keys account from a given master extended public key
+    /// identifier and derived path.
     Derive {
         #[clap(parse(try_from_str = FromHex::from_hex))]
         id: XpubIdentifier,
@@ -291,7 +295,7 @@ impl Exec for SignCommand {
             }
             SignCommand::File { .. } => unimplemented!(),
             SignCommand::Text { .. } => unimplemented!(),
-            SignCommand::Key { .. } => unimplemented!(),
+            SignCommand::Key { id } => self.exec_sign_key(runtime, *id),
         }
     }
 }
@@ -413,12 +417,25 @@ impl XPrivkeyCommand {
 }
 
 impl SignCommand {
-    pub fn exec_sign(
+    pub fn exec_sign_key(
         &self,
-        _runtime: &mut Runtime,
-        _in_file: &str,
-        _out_file: &str,
+        runtime: &mut Runtime,
+        id: XpubIdentifier,
     ) -> Result<(), api::Error> {
-        unimplemented!()
+        debug!("Signing public key with private key");
+        let reply =
+            runtime.request(api::Request::SignKey(api::message::SignKey {
+                key_id: id,
+                decryption_key: secp256k1::key::ONE_KEY,
+                auth_code: 0,
+            }))?;
+        match reply {
+            Reply::Signature(signature) => {
+                info!("New signature created: {}", signature);
+                Ok(())
+            }
+            Reply::Failure(failure) => Err(api::Error::ServerFailure(failure)),
+            _ => Err(api::Error::UnexpectedServerResponse),
+        }
     }
 }

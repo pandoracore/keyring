@@ -45,7 +45,22 @@ impl Runtime {
         })
     }
 
-    pub fn request(&mut self, request: Request) -> Result<Reply, api::Error> {
+    pub fn request(
+        &mut self,
+        mut request: Request,
+    ) -> Result<Reply, api::Error> {
+        // Inserting decryption key if needed
+        if let Some(decryption_key) = match request {
+            Request::ExportXpriv(ref mut req) => Some(&mut req.decryption_key),
+            Request::Derive(ref mut req) => Some(&mut req.decryption_key),
+            Request::SignPsbt(ref mut req) => Some(&mut req.decryption_key),
+            Request::SignKey(ref mut req) => Some(&mut req.decryption_key),
+            Request::SignData(ref mut req) => Some(&mut req.decryption_key),
+            _ => None,
+        } {
+            *decryption_key = self.config.node_key;
+        }
+
         trace!("Sending request to the server: {:?}", request);
         let data = request.encode()?;
         trace!("Raw request data ({} bytes): {:?}", data.len(), data);

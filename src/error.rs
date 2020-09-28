@@ -12,7 +12,7 @@
 // If not, see <https://www.gnu.org/licenses/agpl-3.0-standalone.html>.
 
 use ::std::io;
-#[cfg(feature = "daemon")]
+#[cfg(feature = "shell")]
 use settings::ConfigError;
 #[cfg(feature = "daemon")]
 use tokio::task::JoinError;
@@ -22,7 +22,7 @@ use lnpbp::lnp;
 #[cfg(feature = "daemon")]
 use crate::vault;
 
-#[cfg(feature = "daemon")]
+#[cfg(feature = "shell")]
 #[derive(Debug, Display, Error, From)]
 #[display(Debug)]
 pub enum ConfigInitError {
@@ -36,7 +36,7 @@ pub enum ConfigInitError {
 #[derive(Debug, Display, Error, From)]
 #[display(Debug)]
 pub enum BootstrapError {
-    #[cfg(feature = "daemon")]
+    #[cfg(feature = "shell")]
     #[from]
     ConfigError(ConfigError),
 

@@ -14,10 +14,10 @@
 use std::collections::HashSet;
 
 use lnpbp::bitcoin::hash_types::XpubIdentifier;
+#[cfg(feature = "daemon")]
+use lnpbp::bitcoin::util::bip32::DefaultResolver;
 use lnpbp::bitcoin::util::bip32::KeySource;
-use lnpbp::bitcoin::util::bip32::{
-    DefaultResolver, Fingerprint, KeyApplication,
-};
+use lnpbp::bitcoin::util::bip32::{Fingerprint, KeyApplication};
 use lnpbp::bp::chain::AssetId;
 
 #[cfg(feature = "daemon")]

@@ -12,35 +12,34 @@
 // If not, see <https://www.gnu.org/licenses/agpl-3.0-standalone.html>.
 
 #![allow(dead_code)]
-#![feature(never_type, with_options)]
-#![feature(map_first_last)]
+#![feature(never_type, with_options, map_first_last)]
 
 #[cfg(any(feature = "daemon"))]
 #[macro_use]
 extern crate amplify;
-#[macro_use]
-extern crate amplify_derive;
 #[cfg(any(feature = "daemon"))]
 #[macro_use]
 extern crate async_trait;
-#[cfg(any(feature = "daemon"))]
-#[macro_use]
-extern crate lazy_static;
-#[macro_use]
-extern crate serde;
-#[cfg(any(feature = "daemon", feature = "cli"))]
+
+#[cfg(feature = "cli")]
 #[macro_use]
 extern crate clap;
-#[cfg(any(feature = "daemon", feature = "cli"))]
+
+#[cfg(feature = "shell")]
 #[macro_use]
 extern crate log;
-#[cfg(feature = "daemon")]
+#[cfg(feature = "shell")]
+extern crate settings;
+#[cfg(feature = "shell")]
 #[macro_use]
 extern crate num_derive;
+
+#[macro_use]
+extern crate amplify_derive;
 #[macro_use]
 extern crate lnpbp_derive;
-#[cfg(feature = "server")]
-extern crate settings;
+#[macro_use]
+extern crate serde;
 
 pub mod api;
 #[cfg(feature = "cli")]
