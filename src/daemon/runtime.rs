@@ -176,28 +176,43 @@ impl Runtime {
 
     async fn rpc_sign_psbt(
         &mut self,
-        psbt: message::SignPsbt,
+        mut message: message::SignPsbt,
     ) -> Result<Reply, Reply> {
         trace!("Awaiting for the vault lock");
+        let psbt = self
+            .vault
+            .lock()
+            .await
+            .sign_psbt(message.psbt, &mut message.decryption_key)?;
         trace!("Vault lock released");
-        unimplemented!()
+        Ok(Reply::Psbt(psbt))
     }
 
     async fn rpc_sign_key(
         &mut self,
-        psbt: message::SignKey,
+        mut message: message::SignKey,
     ) -> Result<Reply, Reply> {
         trace!("Awaiting for the vault lock");
+        let signature = self
+            .vault
+            .lock()
+            .await
+            .sign_key(message.key_id, &mut message.decryption_key)?;
         trace!("Vault lock released");
-        unimplemented!()
+        Ok(Reply::Signature(signature))
     }
 
     async fn rpc_sign_data(
         &mut self,
-        psbt: message::SignData,
+        mut message: message::SignData,
     ) -> Result<Reply, Reply> {
         trace!("Awaiting for the vault lock");
+        let signature = self.vault.lock().await.sign_data(
+            message.key_id,
+            &message.data,
+            &mut message.decryption_key,
+        )?;
         trace!("Vault lock released");
-        unimplemented!()
+        Ok(Reply::Signature(signature))
     }
 }

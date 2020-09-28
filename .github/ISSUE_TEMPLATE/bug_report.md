@@ -1,6 +1,6 @@
 ---
 name: Bug report
-about: Let's improve the library together
+about: Let's improve software together
 title: ''
 labels: bug
 assignees: dr-orlovsky

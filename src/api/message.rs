@@ -63,6 +63,7 @@ pub struct Derive {
 #[display_from(Debug)]
 pub struct SignPsbt {
     pub psbt: PartiallySignedTransaction,
+    pub decryption_key: SecretKey,
     pub auth_code: AuthCode,
 }
 
@@ -70,12 +71,15 @@ pub struct SignPsbt {
 #[display_from(Debug)]
 pub struct SignKey {
     pub key_id: XpubIdentifier,
+    pub decryption_key: SecretKey,
     pub auth_code: AuthCode,
 }
 
 #[derive(Clone, Debug, Display, StrictEncode, StrictDecode)]
 #[display_from(Debug)]
 pub struct SignData {
+    pub key_id: XpubIdentifier,
     pub data: Vec<u8>,
+    pub decryption_key: SecretKey,
     pub auth_code: AuthCode,
 }

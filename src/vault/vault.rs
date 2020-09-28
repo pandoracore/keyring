@@ -14,10 +14,12 @@
 use std::collections::HashSet;
 
 use lnpbp::bitcoin::hash_types::XpubIdentifier;
-use lnpbp::bitcoin::secp256k1::{PublicKey, SecretKey};
+use lnpbp::bitcoin::hashes::{sha256, Hash};
+use lnpbp::bitcoin::secp256k1::{PublicKey, SecretKey, Signature};
 use lnpbp::bitcoin::util::bip32::{
     DerivationPath, ExtendedPrivKey, ExtendedPubKey, KeyApplication,
 };
+use lnpbp::bitcoin::util::psbt::PartiallySignedTransaction;
 use lnpbp::bp::chain::{AssetId, Chain};
 
 use super::{driver, keymgm::Error, Driver, FileDriver, Keyring, KeysAccount};
@@ -146,19 +148,38 @@ impl Vault {
         Ok(self
             .account_by_id(id)
             .ok_or(Error::NotFound)?
-            .xprivkey(&mut decryption_key)?
-            .clone())
+            .xprivkey(&mut decryption_key)?)
     }
 
-    pub fn rpc_sign_psbt(&self) -> Result<ExtendedPrivKey, RuntimeError> {
+    pub fn sign_psbt(
+        &self,
+        _psbt: PartiallySignedTransaction,
+        _decryption_key: &mut SecretKey,
+    ) -> Result<PartiallySignedTransaction, RuntimeError> {
         unimplemented!()
     }
 
-    pub fn rpc_sign_key(&self) -> Result<ExtendedPrivKey, RuntimeError> {
-        unimplemented!()
+    pub fn sign_key(
+        &self,
+        id: XpubIdentifier,
+        mut decryption_key: &mut SecretKey,
+    ) -> Result<Signature, RuntimeError> {
+        let account = self.account_by_id(id).ok_or(Error::NotFound)?;
+        let pubkey = account.xpubkey().public_key;
+        Ok(account.sign_digest(
+            sha256::Hash::hash(&pubkey.key.serialize()),
+            &mut decryption_key,
+        )?)
     }
 
-    pub fn rpc_sign_data(&self) -> Result<ExtendedPrivKey, RuntimeError> {
-        unimplemented!()
+    pub fn sign_data(
+        &self,
+        id: XpubIdentifier,
+        data: &[u8],
+        mut decryption_key: &mut SecretKey,
+    ) -> Result<Signature, RuntimeError> {
+        let account = self.account_by_id(id).ok_or(Error::NotFound)?;
+        Ok(account
+            .sign_digest(sha256::Hash::hash(&data), &mut decryption_key)?)
     }
 }
