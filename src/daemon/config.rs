@@ -79,7 +79,16 @@ pub struct Config {
 }
 
 #[derive(
-    Copy, Clone, PartialEq, Eq, Debug, Display, Serialize, Deserialize, FromPrimitive, ToPrimitive,
+    Copy,
+    Clone,
+    PartialEq,
+    Eq,
+    Debug,
+    Display,
+    Serialize,
+    Deserialize,
+    FromPrimitive,
+    ToPrimitive,
 )]
 #[display_from(Debug)]
 pub enum LogLevel {
@@ -94,7 +103,8 @@ impl TryFrom<Opts> for Config {
     type Error = ConfigError;
 
     fn try_from(opts: Opts) -> Result<Self, Self::Error> {
-        let log_level = LogLevel::from_u8(opts.verbose).unwrap_or(LogLevel::Trace);
+        let log_level =
+            LogLevel::from_u8(opts.verbose).unwrap_or(LogLevel::Trace);
 
         setup_verbose(log_level);
         debug!("Verbosity level set to {}", opts.verbose);
@@ -150,7 +160,10 @@ impl TryFrom<Opts> for Config {
         if opts.init {
             if let Err(err) = init_config(&conf_file, me) {
                 error!("Error during config file creation: {}", err);
-                eprintln!("Unable to create configuration file {}: {}", conf_file, err);
+                eprintln!(
+                    "Unable to create configuration file {}: {}",
+                    conf_file, err
+                );
                 exit(1);
             }
             exit(0);
@@ -201,7 +214,9 @@ impl Config {
             .replace("{data_dir}", &self.data_dir)
             .replace("{node_id}", &self.node_id().to_string())
             .parse()
-            .unwrap_or_else(|err| panic!("Error parsing parameter `{}`: {}", param, err))
+            .unwrap_or_else(|err| {
+                panic!("Error parsing parameter `{}`: {}", param, err)
+            })
     }
 
     pub fn node_id(&self) -> secp256k1::PublicKey {

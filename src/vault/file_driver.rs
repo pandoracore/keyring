@@ -38,7 +38,9 @@ pub struct Config {
     pub format: FileFormat,
 }
 
-#[derive(Copy, Clone, PartialEq, Eq, Hash, Debug, Display, Serialize, Deserialize)]
+#[derive(
+    Copy, Clone, PartialEq, Eq, Hash, Debug, Display, Serialize, Deserialize,
+)]
 #[display_from(Debug)]
 #[non_exhaustive]
 pub enum FileFormat {
@@ -50,9 +52,9 @@ pub enum FileFormat {
 
 impl Driver for FileDriver {
     fn init(config: &dyn Any) -> Result<Self, BootstrapError> {
-        let config = config
-            .downcast_ref::<Config>()
-            .expect("`FileDriver` must be configured with `file_driver::Config` object");
+        let config = config.downcast_ref::<Config>().expect(
+            "`FileDriver` must be configured with `file_driver::Config` object",
+        );
         info!(
             "Initializing file driver for vault in {:?}",
             &config.location
@@ -82,7 +84,9 @@ impl Driver for FileDriver {
             self.config.format
         );
         let accounts = match self.config.format {
-            FileFormat::StrictEncoded => Vec::<Keyring>::strict_decode(&mut self.fd)?,
+            FileFormat::StrictEncoded => {
+                Vec::<Keyring>::strict_decode(&mut self.fd)?
+            }
             FileFormat::Yaml => serde_yaml::from_reader(&mut self.fd)?,
             FileFormat::Toml => {
                 let mut data: Vec<u8> = vec![];

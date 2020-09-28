@@ -32,8 +32,8 @@ pub trait Driver: Send + Sync {
 #[non_exhaustive]
 pub enum Config {
     File(file_driver::Config),
-    // Terezor,
-    // Ledger,
+    /* Terezor,
+     * Ledger, */
 }
 
 #[derive(Clone, PartialEq, Eq, Debug, Display)]
