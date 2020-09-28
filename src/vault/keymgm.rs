@@ -46,7 +46,7 @@ use secp256k1::rand::{thread_rng, RngCore};
 
 /// Error cases related to keyring & keys account management and usage
 #[derive(Clone, PartialEq, Eq, Debug, Display, From, Error)]
-#[display_from(Debug)]
+#[display(Debug)]
 pub enum Error {
     /// Error indicating that secret/private key generation failed due to
     /// the fact that produced entropy was not a member of Secp256k1 elliptic
@@ -105,7 +105,7 @@ pub enum Error {
 
     /// Indicates failure to parse derivation path, for instance using
     /// [`FromStr`] or [`TryFrom`]/[`TryInto`] traits
-    #[derive_from(bip32::Error)]
+    #[from(bip32::Error)]
     InvalidDerivationPath,
 
     /// Error happens when operations related to [`ExtendedPubKey`] or
@@ -142,7 +142,7 @@ impl From<secp256k1::Error> for Error {
 
 /// Mode for an update operation
 #[derive(Copy, Clone, PartialEq, Eq, Debug, Display)]
-#[display_from(Debug)]
+#[display(Debug)]
 pub enum UpdateMode {
     /// Add new qualifiers to existing ones
     Add,
@@ -182,7 +182,7 @@ impl Default for UpdateMode {
     StrictEncode,
     StrictDecode,
 )]
-#[display_from(Debug)]
+#[display(Debug)]
 pub struct Keyring {
     master_account: KeysAccount,
     key_source: Option<KeySource>,
@@ -363,18 +363,14 @@ impl Keyring {
                 Ordering::Equal
             }
         });
-        let derive_from = sorted.first().expect(
+        let from = sorted.first().expect(
             "We always have at least one element equal to the master key path",
         ).expect("...and we know that this element is a parent item");
 
         // Do a derivation starting from the found key account
-        let account = derive_from.1.derive(
-            derive_from.0,
-            name,
-            details,
-            assets,
-            decryption_key,
-        )?;
+        let account =
+            from.1
+                .derive(from.0, name, details, assets, decryption_key)?;
         self.sub_accounts.insert(derivation.clone(), account);
         Ok(self.sub_accounts.get(&derivation).unwrap())
     }
@@ -638,7 +634,7 @@ impl Keyring {
     StrictEncode,
     StrictDecode,
 )]
-#[display_from(Debug)]
+#[display(Debug)]
 pub struct KeysAccount {
     xpubkey: ExtendedPubKey,
 

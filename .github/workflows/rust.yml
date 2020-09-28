@@ -63,17 +63,17 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: check
-          args: --lib --features=${{ matrix.features }} --no-fail-fast --verbose
+          args: --lib --features=${{ matrix.features }} --verbose
       - name: No features
         uses: actions-rs/cargo@v1
         with:
           command: check
-          args: --lib --no-default-features --no-fail-fast --verbose
+          args: --lib --no-default-features --verbose
       - name: Default features
         uses: actions-rs/cargo@v1
         with:
           command: check
-          args: -lib --no-fail-fast --verbose
+          args: -lib --verbose
   binaries:
     runs-on: ubuntu-latest
     steps:

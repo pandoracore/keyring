@@ -25,14 +25,14 @@ use crate::error::BootstrapError;
 use std::io::{Read, Seek, Write};
 
 #[derive(Debug, Display)]
-#[display_from(Debug)]
+#[display(Debug)]
 pub struct FileDriver {
     fd: fs::File,
     config: Config,
 }
 
 #[derive(Clone, PartialEq, Eq, Hash, Debug, Display, Serialize, Deserialize)]
-#[display_from(Debug)]
+#[display(Debug)]
 pub struct Config {
     pub location: String,
     pub format: FileFormat,
@@ -41,7 +41,7 @@ pub struct Config {
 #[derive(
     Copy, Clone, PartialEq, Eq, Hash, Debug, Display, Serialize, Deserialize,
 )]
-#[display_from(Debug)]
+#[display(Debug)]
 #[non_exhaustive]
 pub enum FileFormat {
     StrictEncoded,

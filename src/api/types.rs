@@ -36,7 +36,7 @@ pub type AuthCode = u32;
     Serialize,
     Deserialize,
 )]
-#[display_from(Debug)]
+#[display(Debug)]
 #[non_exhaustive]
 pub struct AccountInfo {
     pub id: XpubIdentifier,

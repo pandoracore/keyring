@@ -27,8 +27,6 @@ extern crate async_trait;
 #[macro_use]
 extern crate lazy_static;
 #[macro_use]
-extern crate derive_wrapper;
-#[macro_use]
 extern crate serde;
 #[cfg(any(feature = "daemon", feature = "cli"))]
 #[macro_use]

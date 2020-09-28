@@ -13,7 +13,7 @@
 
 #[derive(Clone, Debug, Display, LnpApi)]
 #[lnp_api(encoding = "strict")]
-#[display_from(Debug)]
+#[display(Debug)]
 #[non_exhaustive]
 pub enum Request {
     #[lnp_api(type = 0x0010)]

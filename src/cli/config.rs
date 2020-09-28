@@ -19,7 +19,7 @@ use super::Command;
 use crate::constants::KEYRING_ZMQ_ENDPOINT;
 
 #[derive(Clap, Clone, Debug, Display)]
-#[display_from(Debug)]
+#[display(Debug)]
 #[clap(
     name = "keyring-cli",
     version = "0.1.0",
@@ -44,7 +44,7 @@ pub struct Opts {
 // via environment and command-line arguments. Thus we need a config file and
 // default set of configuration
 #[derive(Clone, PartialEq, Eq, Debug, Display)]
-#[display_from(Debug)]
+#[display(Debug)]
 pub struct Config {
     pub endpoint: SocketLocator,
 }

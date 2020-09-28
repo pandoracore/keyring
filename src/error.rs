@@ -24,45 +24,45 @@ use crate::vault;
 
 #[cfg(feature = "daemon")]
 #[derive(Debug, Display, Error, From)]
-#[display_from(Debug)]
+#[display(Debug)]
 pub enum ConfigInitError {
-    #[derive_from]
+    #[from]
     IoError(io::Error),
 
-    #[derive_from]
+    #[from]
     Toml(toml::ser::Error),
 }
 
 #[derive(Debug, Display, Error, From)]
-#[display_from(Debug)]
+#[display(Debug)]
 pub enum BootstrapError {
     #[cfg(feature = "daemon")]
-    #[derive_from]
+    #[from]
     ConfigError(ConfigError),
 
     TorNotYetSupported,
 
-    #[derive_from]
+    #[from]
     IoError(io::Error),
 
-    #[derive_from]
+    #[from]
     ArgParseError(String),
 
-    #[derive_from]
+    #[from]
     ZmqSocketError(zmq::Error),
 
     #[cfg(feature = "daemon")]
-    #[derive_from]
+    #[from]
     MultithreadError(JoinError),
 
     #[cfg(feature = "monitoring")]
     MonitorSocketError(Box<dyn std::error::Error + Send>),
 
-    #[derive_from]
+    #[from]
     TransportError(lnp::transport::Error),
 
     #[cfg(feature = "daemon")]
-    #[derive_from]
+    #[from]
     VaultError(vault::driver::Error),
 
     #[cfg(feature = "daemon")]
@@ -84,19 +84,19 @@ impl From<&str> for BootstrapError {
 }
 
 #[derive(Debug, Display, Error, From)]
-#[display_from(Debug)]
+#[display(Debug)]
 pub enum RuntimeError {
-    #[derive_from(lnp::transport::Error)]
+    #[from(lnp::transport::Error)]
     Transport,
 
-    #[derive_from(lnp::presentation::Error)]
+    #[from(lnp::presentation::Error)]
     Message,
 
     #[cfg(feature = "daemon")]
-    #[derive_from]
+    #[from]
     VaultDriver(vault::driver::Error),
 
     #[cfg(feature = "daemon")]
-    #[derive_from]
+    #[from]
     KeyManagement(vault::keymgm::Error),
 }

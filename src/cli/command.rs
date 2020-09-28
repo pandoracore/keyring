@@ -35,7 +35,7 @@ where
 
 /// Error for an unknown enum representation; either string or numeric
 #[derive(Clone, Copy, PartialEq, Eq, Debug, Display, Error)]
-#[display_from(Debug)]
+#[display(Debug)]
 pub struct EnumReprError;
 
 impl TryFromStr for KeyApplication {
@@ -68,7 +68,7 @@ impl TryFromStr for KeyApplication {
 ///     keyring-cli sign <in_file> <out_file>
 /// ```
 #[derive(Clap, Clone, Debug, Display)]
-#[display_from(Debug)]
+#[display(Debug)]
 pub enum Command {
     /// Seed operations: generation, import, export
     Seed {
@@ -100,7 +100,7 @@ pub enum Command {
 }
 
 #[derive(Clap, Clone, Debug, Display)]
-#[display_from(Debug)]
+#[display(Debug)]
 pub enum SeedCommand {
     Create {
         /// Target chain for the key
@@ -135,7 +135,7 @@ pub enum SeedCommand {
 }
 
 #[derive(Clap, Clone, Debug, Display)]
-#[display_from(Debug)]
+#[display(Debug)]
 pub enum XPubkeyCommand {
     List {
         #[clap(short, long, arg_enum, default_value = "yaml")]
@@ -158,7 +158,7 @@ pub enum XPubkeyCommand {
 }
 
 #[derive(Clap, Clone, Debug, Display)]
-#[display_from(Debug)]
+#[display(Debug)]
 pub enum XPrivkeyCommand {
     Export {
         #[clap(parse(try_from_str = FromHex::from_hex))]
@@ -169,7 +169,7 @@ pub enum XPrivkeyCommand {
 }
 
 #[derive(Clap, Clone, Debug, Display)]
-#[display_from(Debug)]
+#[display(Debug)]
 pub enum SignCommand {
     /// Signs given PSBT
     Psbt {

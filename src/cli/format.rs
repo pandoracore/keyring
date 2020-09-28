@@ -11,10 +11,8 @@
 // along with this software.
 // If not, see <https://www.gnu.org/licenses/agpl-3.0-standalone.html>.
 
-use std::fmt::{self, Display, Formatter};
-use std::str::FromStr;
-
-#[derive(Clap, Copy, Clone, Debug, DisplayEnum)]
+#[derive(Clap, Copy, Clone, Debug, Display)]
+#[display(doc_comments)]
 pub enum BinaryData {
     /// Raw/binary file with data
     File,
@@ -32,7 +30,8 @@ impl Default for BinaryData {
     }
 }
 
-#[derive(Clap, Copy, Clone, Debug, DisplayEnum)]
+#[derive(Clap, Copy, Clone, Debug, Display)]
+#[display(doc_comments)]
 pub enum Script {
     /// Binary script source encoded as hexadecimal string
     Hex,
@@ -53,7 +52,8 @@ impl Default for Script {
     }
 }
 
-#[derive(Clap, Copy, Clone, Debug, DisplayEnum)]
+#[derive(Clap, Copy, Clone, Debug, Display)]
+#[display(doc_comments)]
 pub enum StructuredData {
     /// JSON
     Json,
@@ -74,7 +74,8 @@ pub enum StructuredData {
     StrictBase64,
 }
 
-#[derive(Clap, Copy, Clone, Debug, DisplayEnum)]
+#[derive(Clap, Copy, Clone, Debug, Display)]
+#[display(doc_comments)]
 pub enum Tx {
     /// Binary transaction data
     Binary,
@@ -101,7 +102,8 @@ impl Default for Tx {
     }
 }
 
-#[derive(Clap, Copy, Clone, Debug, DisplayEnum)]
+#[derive(Clap, Copy, Clone, Debug, Display)]
+#[display(doc_comments)]
 pub enum Psbt {
     /// Binary PSBT data
     Binary,
@@ -128,7 +130,8 @@ impl Default for Psbt {
     }
 }
 
-#[derive(Clap, Copy, Clone, Debug, DisplayEnum)]
+#[derive(Clap, Copy, Clone, Debug, Display)]
+#[display(Debug)]
 pub enum KeyType {
     A,
 }

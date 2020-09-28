@@ -19,7 +19,7 @@ use crate::error::RuntimeError;
 
 #[derive(Clone, Debug, Display, LnpApi)]
 #[lnp_api(encoding = "strict")]
-#[display_from(Debug)]
+#[display(Debug)]
 #[non_exhaustive]
 pub enum Reply {
     #[lnp_api(type = 0x0100)]

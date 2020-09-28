@@ -15,16 +15,16 @@ use crate::api::message::Failure;
 use lnpbp::lnp;
 
 #[derive(Clone, Debug, Display, Error, From)]
-#[display_from(Debug)]
+#[display(Debug)]
 pub enum Error {
     UnexpectedServerResponse,
 
-    #[derive_from]
+    #[from]
     ServerFailure(Failure),
 
-    #[derive_from]
+    #[from]
     PresentationError(lnp::presentation::Error),
 
-    #[derive_from]
+    #[from]
     TransportError(lnp::transport::Error),
 }

@@ -16,7 +16,7 @@ use lnpbp::lnp::transport::zmq::SocketLocator;
 use crate::constants::KEYRING_ZMQ_ENDPOINT;
 
 #[derive(Clone, PartialEq, Eq, Debug, Display)]
-#[display_from(Debug)]
+#[display(Debug)]
 pub struct Config {
     pub endpoint: SocketLocator,
 }

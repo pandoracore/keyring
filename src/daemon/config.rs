@@ -31,7 +31,7 @@ use crate::error::ConfigInitError;
 use crate::vault;
 
 #[derive(Clap, Clone, PartialEq, Eq, Hash, Debug, Display)]
-#[display_from(Debug)]
+#[display(Debug)]
 #[clap(
     name = "keyringd",
     version = "0.1.0-alpha",
@@ -66,7 +66,7 @@ pub struct Opts {
 }
 
 #[derive(Clone, PartialEq, Eq, Debug, Display, Serialize, Deserialize)]
-#[display_from(Debug)]
+#[display(Debug)]
 pub struct Config {
     #[serde(with = "serde_with::rust::display_fromstr")]
     pub node_key: secp256k1::SecretKey,
@@ -90,7 +90,7 @@ pub struct Config {
     FromPrimitive,
     ToPrimitive,
 )]
-#[display_from(Debug)]
+#[display(Debug)]
 pub enum LogLevel {
     Error = 0,
     Warn,
