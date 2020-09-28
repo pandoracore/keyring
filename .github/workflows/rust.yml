@@ -10,7 +10,7 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -19,14 +19,14 @@ jobs:
       - name: Install latest nightly
         uses: actions-rs/toolchain@v1
         with:
-            toolchain: nightly
-            override: true
-            components: rustfmt
+          toolchain: nightly
+          override: true
+          components: rustfmt
       - name: Build & test
         uses: actions-rs/cargo@v1
         with:
           command: test
-          args: --all --all-targets --all-features --no-fail-fast
+          args: --all --all-targets --all-features --no-fail-fast --verbose
         env:
           CARGO_INCREMENTAL: '0'
           RUSTFLAGS: '-Zprofile -Ccodegen-units=1 -Cinline-threshold=0 -Clink-dead-code -Coverflow-checks=off'
@@ -44,3 +44,81 @@ jobs:
         with:
           command: fmt
           args: --all -- --check
+  features:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        features: [ server, daemon, cli, integration ]
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install dependencies
+        run: sudo apt-get install -y libzmq3-dev libpcre3-dev libpq-dev libssl-dev
+      - name: Install latest nightly
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly
+          override: true
+          components: rustfmt
+      - name: Each feature
+        uses: actions-rs/cargo@v1
+        with:
+          command: check
+          args: --lib --features=${{ matrix.features }} --no-fail-fast --verbose
+      - name: No features
+        uses: actions-rs/cargo@v1
+        with:
+          command: check
+          args: --lib --no-default-features --no-fail-fast --verbose
+      - name: Default features
+        uses: actions-rs/cargo@v1
+        with:
+          command: check
+          args: -lib --no-fail-fast --verbose
+  binaries:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install dependencies
+        run: sudo apt-get install -y libzmq3-dev libpcre3-dev libpq-dev libssl-dev
+      - name: Install latest nightly
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly
+          override: true
+          components: rustfmt
+      - name: Build daemon
+        uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --bin keyringd --features server
+      - name: Build CLI
+        uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --bin keyring-cli --features integration,cli
+  library:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install dependencies
+        run: sudo apt-get install -y libzmq3-dev libpcre3-dev libpq-dev libssl-dev
+      - name: Install latest nightly
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly
+          override: true
+          components: rustfmt
+      - name: Create dependency
+        run: |
+          cargo new dep_test
+          cd dep_test
+          printf 'keyring = { path = "..", default-features = false, features = ["integration"] }\n\n[workspace]' >> Cargo.toml
+      - name: Build dependency
+        uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --verbose
+      - name: Clean up
+        run: |
+          cd ..
+          rm -rf dep_test
