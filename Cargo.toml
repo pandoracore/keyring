@@ -54,7 +54,7 @@ branch = "master"
 
 [features]
 default = []
-all = ["server", "monitoring", "integration"]
+all = ["daemon", "integration", "monitoring"]
 server = ["daemon"] # Server is a standalone application that runs daemon
                     # Besides server daemon can be run as a part of mobile app
                     # and other types of clients; thus `server` != `daemon`

@@ -164,12 +164,17 @@ impl Vault {
         id: XpubIdentifier,
         mut decryption_key: &mut SecretKey,
     ) -> Result<Signature, RuntimeError> {
+        debug!(
+            "Signing public key with id {} using corresponding private key",
+            id
+        );
         let account = self.account_by_id(id).ok_or(Error::NotFound)?;
+        trace!("Keys account for key id is found: {}", account);
         let pubkey = account.xpubkey().public_key;
-        Ok(account.sign_digest(
-            sha256::Hash::hash(&pubkey.key.serialize()),
-            &mut decryption_key,
-        )?)
+        trace!("Public key used for signing: {}", pubkey);
+        let digest = sha256::Hash::hash(&pubkey.key.serialize());
+        trace!("Signing key digest {}", digest);
+        Ok(account.sign_digest(digest, &mut decryption_key)?)
     }
 
     pub fn sign_data(

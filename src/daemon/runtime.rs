@@ -193,11 +193,10 @@ impl Runtime {
         mut message: message::SignKey,
     ) -> Result<Reply, Reply> {
         trace!("Awaiting for the vault lock");
-        let signature = self
-            .vault
-            .lock()
-            .await
-            .sign_key(message.key_id, &mut message.decryption_key)?;
+        let vault = self.vault.lock().await;
+        trace!("Lock acquired");
+        let signature =
+            vault.sign_key(message.key_id, &mut message.decryption_key)?;
         trace!("Vault lock released");
         Ok(Reply::Signature(signature))
     }
@@ -207,7 +206,9 @@ impl Runtime {
         mut message: message::SignData,
     ) -> Result<Reply, Reply> {
         trace!("Awaiting for the vault lock");
-        let signature = self.vault.lock().await.sign_data(
+        let vault = self.vault.lock().await;
+        trace!("Lock acquired");
+        let signature = vault.sign_data(
             message.key_id,
             &message.data,
             &mut message.decryption_key,

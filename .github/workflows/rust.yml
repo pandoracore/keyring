@@ -44,11 +44,8 @@ jobs:
         with:
           command: fmt
           args: --all -- --check
-  features:
+  library:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        features: [ server, daemon, cli, integration ]
     steps:
       - uses: actions/checkout@v2
       - name: Install dependencies
@@ -59,11 +56,21 @@ jobs:
           toolchain: nightly
           override: true
           components: rustfmt
-      - name: Each feature
+      - name: "Features: daemon + integration"
         uses: actions-rs/cargo@v1
         with:
           command: check
-          args: --lib --features=${{ matrix.features }} --verbose
+          args: --lib --features=daemon,integration --verbose
+      - name: "Feature: daemon"
+        uses: actions-rs/cargo@v1
+        with:
+          command: check
+          args: --lib --features=daemon --verbose
+      - name: "Feature: ntegration"
+        uses: actions-rs/cargo@v1
+        with:
+          command: check
+          args: --lib --features=integration --verbose
       - name: No features
         uses: actions-rs/cargo@v1
         with:
@@ -91,12 +98,17 @@ jobs:
         with:
           command: build
           args: --bin keyringd --features server
+      - name: Build daemon with monitoring
+        uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --bin keyringd --features server,monitoring
       - name: Build CLI
         uses: actions-rs/cargo@v1
         with:
           command: build
           args: --bin keyring-cli --features integration,cli
-  library:
+  dependency:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2

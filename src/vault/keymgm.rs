@@ -103,10 +103,10 @@ pub enum Error {
     /// account (i.e. account with none/empty derivation path)
     MasterAccount,
 
-    /// Indicates failure to parse derivation path, for instance using
-    /// [`FromStr`] or [`TryFrom`]/[`TryInto`] traits
+    /// Indicates failure to parse extended key or derivation path, in
+    /// particular using [`FromStr`] or [`TryFrom`]/[`TryInto`] traits
     #[from(bip32::Error)]
-    InvalidDerivationPath,
+    ExtendedKeyFormat(bip32::Error),
 
     /// Error happens when operations related to [`ExtendedPubKey`] or
     /// [`ExtendedPrivKey`] resolving tasks has failed. Key resolving is done
@@ -664,13 +664,15 @@ impl KeysAccount {
         application: KeyApplication,
         encryption_key: secp256k1::PublicKey,
     ) -> Result<Self, Error> {
+        debug!("Generating seed");
         let mut random = [0u8; 32];
         thread_rng().fill_bytes(&mut random);
         let mut seed = random;
         // Clearing random value right after the copy takes place
         thread_rng().fill_bytes(&mut random);
 
-        let mut xprivkey = ExtendedPrivKey::new_master(
+        trace!("Creating master extended private key from the seed");
+        let xprivkey = ExtendedPrivKey::new_master(
             DefaultResolver::resolve(
                 bitcoin::Network::try_from(chain)
                     .unwrap_or(bitcoin::Network::Bitcoin),
@@ -678,27 +680,50 @@ impl KeysAccount {
                 true,
             ),
             &seed,
-        )?;
+        );
         // Wiping out seed
         thread_rng().fill_bytes(&mut seed);
-        // Generating extended pubkey
+        let mut xprivkey = xprivkey?;
+
+        trace!("Creating master extended public key from the xpriv");
         let xpubkey =
             ExtendedPubKey::from_private(&lnpbp::SECP256K1, &xprivkey)
                 .ok_or(Error::ResolverFailure)?;
 
+        trace!("Creating blinding and unblinding keys for Elgamal encryption");
         thread_rng().fill_bytes(&mut random);
-        let mut blinding = secp256k1::SecretKey::from_slice(&random)?;
-        let unblinding =
-            secp256k1::PublicKey::from_secret_key(&lnpbp::SECP256K1, &blinding);
-        let encrypted = elgamal::encrypt(
-            &xprivkey.encode(),
-            encryption_key,
-            &mut blinding,
-        )?;
-        // Instantly wiping out xpriv:
-        xprivkey.private_key.key.add_assign(&random)?;
+        let mut blinding =
+            secp256k1::SecretKey::from_slice(&random).or_else(|err| {
+                // Clearing private key before unwrapping
+                let sk = &mut xprivkey.private_key.key;
+                *sk = secp256k1::key::ONE_KEY;
+                Err(err)
+            })?;
         // Wiping out blinding source
         thread_rng().fill_bytes(&mut random);
+
+        // Creating unblinding key
+        let unblinding =
+            secp256k1::PublicKey::from_secret_key(&lnpbp::SECP256K1, &blinding);
+
+        trace!("Encrypting private key");
+        let mut encoded = xprivkey.encode();
+        let encrypted =
+            elgamal::encrypt(&encoded, encryption_key, &mut blinding);
+        // Clearing key encoding data
+        encoded.copy_from_slice(&[0u8; 78]);
+        let encrypted = encrypted?;
+        // Instantly wiping out xpriv:
+        thread_rng().fill_bytes(&mut random);
+        let _ = xprivkey.private_key.key.add_assign(&random).map_err(|_| {
+            *(&mut xprivkey.private_key.key) = secp256k1::key::ONE_KEY
+        });
+        trace!("Seed and keys are successfully generated and memory data were cleared");
+
+        trace!(
+            "Encoded length of the private key is 78, encrypted - {} bytes",
+            encrypted.len()
+        );
 
         Ok(Self {
             xpubkey,
@@ -792,20 +817,33 @@ impl KeysAccount {
     ) -> Result<ExtendedPrivKey, Error> {
         let mut random = [0u8; 32];
 
-        // Decrypting private key & clearing decryption key
-        let mut secret_data =
-            elgamal::decrypt(&self.encrypted, decryption_key, self.unblinding)?;
+        debug!("Unlocking extended private key");
+        trace!("Decrypting private key & clearing decryption key");
+        let secret_data =
+            elgamal::decrypt(&self.encrypted, decryption_key, self.unblinding);
 
-        // Instantly wiping our decryption key
+        trace!("Instantly wiping our decryption key");
         thread_rng().fill_bytes(&mut random);
-        decryption_key.add_assign(&random)?;
+        let _ = decryption_key
+            .add_assign(&random)
+            .map_err(|_| *decryption_key = secp256k1::key::ONE_KEY);
 
+        // Now it's safe to unwrap
+        let mut secret_data = secret_data?;
+        trace!(
+            "Decrypted {} bytes our of {} bytes",
+            secret_data.len(),
+            self.encrypted.len()
+        );
+
+        trace!("Decoding extended private key");
         let xprivkey =
-            ExtendedPrivKey::<DefaultResolver>::decode(&secret_data)?;
-        // Wiping out secred data
+            ExtendedPrivKey::<DefaultResolver>::decode(&secret_data[..78]);
+
+        trace!("Wiping out secret data");
         thread_rng().fill_bytes(&mut secret_data);
 
-        Ok(xprivkey)
+        Ok(xprivkey?)
     }
 
     /// Updates information inside keys account. For information on the
@@ -875,18 +913,21 @@ impl KeysAccount {
         // TODO: add `<LEN=secp256k::MESSAGE_SIZE>` later when <https://github.com/rust-lang/rust/issues/70256> will be solved
         H: bitcoin::hashes::Hash,
     {
-        let mut random = [0u8; 32];
-
+        trace!("Decrypting private key");
         let mut xprivkey = self.xprivkey(&mut decryption_key)?;
 
+        trace!("Signing {}", digest);
         let signature = lnpbp::SECP256K1.sign(
             &secp256k1::Message::from_slice(&digest[..])?,
             &xprivkey.private_key.key,
         );
 
+        trace!("Wiping private key from memory");
+        let mut random = [0u8; 32];
         thread_rng().fill_bytes(&mut random);
         xprivkey.private_key.key.add_assign(&random)?;
 
+        debug!("Signature for message {} created", digest);
         Ok(signature)
     }
 }
