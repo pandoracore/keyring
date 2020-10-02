@@ -11,6 +11,7 @@
 // along with this software.
 // If not, see <https://www.gnu.org/licenses/agpl-3.0-standalone.html>.
 
+use amplify::TryService;
 use std::any::Any;
 use std::sync::Arc;
 use tokio::sync::Mutex;
@@ -18,7 +19,6 @@ use tokio::sync::Mutex;
 use lnpbp::lnp::presentation::Encode;
 use lnpbp::lnp::zmq::ApiType;
 use lnpbp::lnp::{transport, NoEncryption, Session, Unmarshall, Unmarshaller};
-use lnpbp::TryService;
 
 use super::Config;
 use crate::api::{message, Reply, Request};
@@ -66,7 +66,7 @@ impl Runtime {
 impl TryService for Runtime {
     type ErrorType = RuntimeError;
 
-    async fn try_run_loop(mut self) -> Result<!, Self::ErrorType> {
+    async fn try_run_loop(mut self) -> Result<(), Self::ErrorType> {
         loop {
             match self.run().await {
                 Ok(_) => debug!("API request processing complete"),

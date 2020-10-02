@@ -1,4 +1,4 @@
-name: Rust
+name: Features & Rust ver
 
 on:
   push:
@@ -10,7 +10,26 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  test:
+  features:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        feature: [ daemon, integration, "daemon,integration" ]
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install dependencies
+        run: sudo apt-get install -y libzmq3-dev libpcre3-dev libpq-dev libssl-dev
+      - name: Install rust nightly
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly
+          override: true
+      - name: Feature ${{matrix.feature}}
+        uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --lib --features=${{matrix.feature}} --verbose
+  no-features:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -21,67 +40,12 @@ jobs:
         with:
           toolchain: nightly
           override: true
-          components: rustfmt
-      - name: Build & test
-        uses: actions-rs/cargo@v1
-        with:
-          command: test
-          args: --all --all-targets --all-features --no-fail-fast --verbose
-        env:
-          CARGO_INCREMENTAL: '0'
-          RUSTFLAGS: '-Zprofile -Ccodegen-units=1 -Cinline-threshold=0 -Clink-dead-code -Coverflow-checks=off'
-          RUSTDOCFLAGS: '-Zprofile -Ccodegen-units=1 -Cinline-threshold=0 -Clink-dead-code -Coverflow-checks=off'
-      - id: coverage
-        name: Generate coverage
-        uses: actions-rs/grcov@v0.1.5
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v1
-        with:
-          file: ${{ steps.coverage.outputs.report }}
-          directory: ./coverage/reports/
-      - uses: actions-rs/cargo@v1
-        name: Lints
-        with:
-          command: fmt
-          args: --all -- --check
-  library:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - name: Install dependencies
-        run: sudo apt-get install -y libzmq3-dev libpcre3-dev libpq-dev libssl-dev
-      - name: Install latest nightly
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: nightly
-          override: true
-          components: rustfmt
-      - name: "Features: daemon + integration"
-        uses: actions-rs/cargo@v1
-        with:
-          command: check
-          args: --lib --features=daemon,integration --verbose
-      - name: "Feature: daemon"
-        uses: actions-rs/cargo@v1
-        with:
-          command: check
-          args: --lib --features=daemon --verbose
-      - name: "Feature: ntegration"
-        uses: actions-rs/cargo@v1
-        with:
-          command: check
-          args: --lib --features=integration --verbose
       - name: No features
         uses: actions-rs/cargo@v1
         with:
           command: check
           args: --lib --no-default-features --verbose
-      - name: Default features
-        uses: actions-rs/cargo@v1
-        with:
-          command: check
-          args: --lib --verbose
-  binaries:
+  default-features:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -92,22 +56,11 @@ jobs:
         with:
           toolchain: nightly
           override: true
-          components: rustfmt
-      - name: Build daemon
+      - name: Default features
         uses: actions-rs/cargo@v1
         with:
-          command: build
-          args: --bin keyringd --features server
-      - name: Build daemon with monitoring
-        uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: --bin keyringd --features server,monitoring
-      - name: Build CLI
-        uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: --bin keyring-cli --features integration,cli
+          command: check
+          args: --lib --verbose
   dependency:
     runs-on: ubuntu-latest
     steps:
@@ -119,7 +72,6 @@ jobs:
         with:
           toolchain: nightly
           override: true
-          components: rustfmt
       - name: Create dependency
         run: |
           cargo new dep_test

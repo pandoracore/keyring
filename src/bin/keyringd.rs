@@ -13,20 +13,21 @@
 
 //! Main daemon file
 
+#![feature(never_type)]
+
 #[macro_use]
 extern crate log;
 
+use amplify::TryService;
 use clap::Clap;
 use core::convert::TryInto;
 use log::LevelFilter;
-
-use lnpbp::TryService;
 
 use keyring::daemon::{Config, Opts, Runtime};
 use keyring::error::BootstrapError;
 
 #[tokio::main]
-async fn main() -> Result<(), BootstrapError> {
+async fn main() -> Result<!, BootstrapError> {
     log::set_max_level(LevelFilter::Trace);
     info!("keyringd: private/public key managing service");
 
@@ -35,5 +36,7 @@ async fn main() -> Result<(), BootstrapError> {
     config.apply();
 
     let runtime = Runtime::init(config).await?;
-    runtime.run_or_panic("keyringd runtime").await
+    runtime.run_or_panic("keyringd runtime").await;
+
+    unreachable!()
 }

@@ -1,6 +1,6 @@
 # Keyring: bitcoin key management for cypherpunks
 
-![Rust](https://github.com/pandoracore/keyring/workflows/Rust/badge.svg)
+![Rust](https://github.com/pandoracore/keyring/workflows/Test/badge.svg)
 [![codecov](https://codecov.io/gh/pandoracore/keyring/branch/master/graph/badge.svg)](https://codecov.io/gh/pandoracore/keyring)
 [![AGPL licensed](https://img.shields.io/badge/license-AGPL-green.svg)](./LICENSE)
 

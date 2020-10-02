@@ -11,6 +11,7 @@
 // along with this software.
 // If not, see <https://www.gnu.org/licenses/agpl-3.0-standalone.html>.
 
+use amplify::Exec;
 use std::path::PathBuf;
 
 use lnpbp::bitcoin::hashes::hex::{FromHex, ToHex};
@@ -18,7 +19,6 @@ use lnpbp::bitcoin::secp256k1;
 use lnpbp::bitcoin::util::bip32::{DerivationPath, KeyApplication};
 use lnpbp::bitcoin::XpubIdentifier;
 use lnpbp::bp::Chain;
-use lnpbp::service::Exec;
 use lnpbp::strict_encoding::strict_encode;
 
 use super::format;

@@ -18,11 +18,10 @@
 #[macro_use]
 extern crate log;
 
+use amplify::Exec;
 use clap::Clap;
 use log::LevelFilter;
 use std::convert::TryInto;
-
-use lnpbp::service::Exec;
 
 use keyring::cli::{Config, Opts, Runtime};
 use keyring::error::BootstrapError;
