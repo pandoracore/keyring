@@ -16,13 +16,13 @@
 use ::core::any::Any;
 use ::std::fs;
 use ::std::io;
+use ::std::io::{Read, Seek, Write};
 use ::std::path::Path;
 
 use lnpbp::strict_encoding::{StrictDecode, StrictEncode};
 
 use super::{driver, Driver, Keyring};
 use crate::error::BootstrapError;
-use std::io::{Read, Seek, Write};
 
 #[derive(Debug, Display)]
 #[display(Debug)]
@@ -121,7 +121,7 @@ impl Driver for FileDriver {
                 serde_json::to_writer(&mut self.fd, accounts)?;
             }
         };
-        trace!("Data stored");
+        trace!("Vault data stored");
         Ok(())
     }
 }

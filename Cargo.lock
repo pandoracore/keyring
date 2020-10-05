@@ -698,7 +698,7 @@ checksum = "8dd5a6d5999d9907cda8ed67bbd137d3af8085216c2ac62de5be860bd41f304a"
 [[package]]
 name = "lnpbp"
 version = "0.1.0"
-source = "git+https://github.com/LNP-BP/rust-lnpbp?branch=master#ec11422077d7cd4ea477625a85bd4e133c5b907c"
+source = "git+https://github.com/LNP-BP/rust-lnpbp?branch=master#da2832468b7f021cd8674d2ab2f4138640c10b84"
 dependencies = [
  "amplify",
  "amplify_derive",
@@ -713,6 +713,7 @@ dependencies = [
  "num-derive",
  "num-traits 0.2.12",
  "serde 1.0.116",
+ "serde_with",
  "tokio",
  "url",
  "zmq",
@@ -721,7 +722,7 @@ dependencies = [
 [[package]]
 name = "lnpbp_derive"
 version = "0.1.0"
-source = "git+https://github.com/LNP-BP/rust-lnpbp?branch=master#ec11422077d7cd4ea477625a85bd4e133c5b907c"
+source = "git+https://github.com/LNP-BP/rust-lnpbp?branch=master#da2832468b7f021cd8674d2ab2f4138640c10b84"
 dependencies = [
  "amplify",
  "quote 1.0.7",
@@ -762,8 +763,8 @@ dependencies = [
 
 [[package]]
 name = "miniscript"
-version = "1.0.0"
-source = "git+https://github.com/LNP-BP/rust-miniscript?branch=develop#07f37be581f7ea5cc6a8bc915980a5ef2e002108"
+version = "2.0.0"
+source = "git+https://github.com/LNP-BP/rust-miniscript?branch=develop#ba5010e4375bb07c5653ceba5336e6a4b17e950a"
 dependencies = [
  "bitcoin",
  "serde 1.0.116",
@@ -1037,9 +1038,9 @@ dependencies = [
 
 [[package]]
 name = "protobuf"
-version = "2.17.0"
+version = "2.18.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cb14183cc7f213ee2410067e1ceeadba2a7478a59432ff0747a335202798b1e2"
+checksum = "6d147edb77bcccbfc81fabffdc7bd50c13e103b15ca1e27515fe40de69a5776b"
 
 [[package]]
 name = "quick-error"
@@ -1362,9 +1363,9 @@ dependencies = [
 
 [[package]]
 name = "serde_with"
-version = "1.4.0"
+version = "1.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "89d3d595d64120bbbc70b7f6d5ae63298b62a3d9f373ec2f56acf5365ca8a444"
+checksum = "f87df303fd746404ca055fffb3a1850243ee3404f9bda4dc5760132814dd0734"
 dependencies = [
  "serde 1.0.116",
  "serde_with_macros",
@@ -1372,9 +1373,9 @@ dependencies = [
 
 [[package]]
 name = "serde_with_macros"
-version = "1.2.0"
+version = "1.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fe2c6a4cb9be4c26e73a98dc94fdd90b876971e3b575eeed6d4b82c7d17aa4a5"
+checksum = "738e6b326723cdf0d9afce8d386dc6a967ffa91e0b4de82f6450c154199ae798"
 dependencies = [
  "darling",
  "proc-macro2 1.0.24",

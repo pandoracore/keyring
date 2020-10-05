@@ -142,10 +142,18 @@ impl Default for KeyType {
     }
 }
 
-#[derive(Clap, Copy, Clone, Debug)]
+#[derive(Clap, Copy, Clone, Debug, Display)]
+#[display(doc_comments)]
 pub enum SigHashType {
+    /// SIGHASH_ALL
     All,
+
+    /// SIGHASH_NONE
     None,
+
+    /// SIGHASH_SINGLE
     Single,
+
+    /// |ANYONE_CAN_PAY
     AnyoneCanPay,
 }

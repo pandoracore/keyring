@@ -23,7 +23,7 @@ amplify_derive = "~1.1.1"
 lazy_static = "~1.4.0"
 # Serialization & parsing
 serde = { version = "~1.0.111", features = ["derive"] }
-serde_with = "~1.4.0"
+serde_with = "~1.5.0"
 serde_json = { version = "~1.0.55", optional = true }
 serde_yaml = { version = "~0.8.13", optional = true }
 toml = { version = "~0.5.6", optional = true }
@@ -53,7 +53,7 @@ branch = "master"
 features = ["lnp", "keygen", "elgamal", "tokio", "serde", "tor", "url", "websockets"]
 
 [dependencies.lnpbp_derive]
-git = "https://github.com/lnp-bp/rust-lnpbp"
+git = "https://github.com/LNP-BP/rust-lnpbp"
 branch = "master"
 
 [patch.crates-io]
