@@ -46,7 +46,7 @@ use secp256k1::rand::{thread_rng, RngCore};
 
 /// Error cases related to keyring & keys account management and usage
 #[derive(Clone, PartialEq, Eq, Debug, Display, From, Error)]
-#[display(Debug)]
+#[display(doc_comments)]
 pub enum Error {
     /// Error indicating that secret/private key generation failed due to
     /// the fact that produced entropy was not a member of Secp256k1 elliptic
@@ -328,7 +328,7 @@ impl Keyring {
         &mut self,
         derivation: impl IntoDerivationPath,
         name: impl ToString,
-        details: impl ToString,
+        details: Option<impl ToString>,
         assets: HashSet<AssetId>,
         decryption_key: &mut secp256k1::SecretKey,
     ) -> Result<&KeysAccount, Error> {
@@ -744,7 +744,7 @@ impl KeysAccount {
         &self,
         derivation: impl IntoDerivationPath,
         name: impl ToString,
-        details: impl ToString,
+        details: Option<impl ToString>,
         assets: HashSet<AssetId>,
         mut decryption_key: &mut secp256k1::SecretKey,
     ) -> Result<KeysAccount, Error> {
@@ -792,7 +792,7 @@ impl KeysAccount {
         Ok(Self {
             xpubkey,
             name: name.to_string(),
-            details: details.to_string(),
+            details: details.map(|s| s.to_string()).unwrap_or_default(),
             assets,
             encrypted,
             unblinding,

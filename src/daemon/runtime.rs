@@ -42,7 +42,7 @@ pub struct Runtime {
 impl Runtime {
     pub async fn init(config: Config) -> Result<Self, BootstrapError> {
         debug!("Initializing vault {}", config.vault);
-        let vault = Vault::new(&config.vault)?;
+        let vault = Vault::with(&config.vault)?;
 
         debug!("Opening ZMQ socket {}", config.zmq_endpoint);
         let mut context = zmq::Context::new();
@@ -142,7 +142,7 @@ impl Runtime {
             derive.from,
             derive.path,
             derive.name,
-            derive.details,
+            Some(derive.details),
             derive.assets,
             &mut derive.decryption_key,
         )?;

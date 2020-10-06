@@ -32,7 +32,7 @@ pub struct Vault {
 }
 
 impl Vault {
-    pub fn new(config: &driver::Config) -> Result<Self, BootstrapError> {
+    pub fn with(config: &driver::Config) -> Result<Self, BootstrapError> {
         let mut driver = match config {
             driver::Config::File(fdc) => FileDriver::init(fdc)?,
         };
@@ -87,15 +87,16 @@ impl Vault {
 
     pub fn seed(
         &mut self,
-        name: String,
-        description: Option<String>,
+        name: impl ToString,
+        description: Option<impl ToString>,
         chain: &Chain,
         application: KeyApplication,
         encryption_key: PublicKey,
     ) -> Result<(), RuntimeError> {
-        let description = description.unwrap_or("".to_string());
+        let description =
+            description.map(|s| s.to_string()).unwrap_or_default();
         let keyring = Keyring::with(
-            name.clone(),
+            name.to_string(),
             description.clone(),
             chain,
             application,
@@ -115,8 +116,8 @@ impl Vault {
         &mut self,
         root: XpubIdentifier,
         path: DerivationPath,
-        name: String,
-        details: String,
+        name: impl ToString,
+        details: Option<impl ToString>,
         assets: HashSet<AssetId>,
         decryption_key: &mut SecretKey,
     ) -> Result<AccountInfo, RuntimeError> {
