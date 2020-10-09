@@ -106,6 +106,7 @@ impl Driver for FileDriver {
         );
         trace!("Current vault data: {:?}", accounts);
         self.fd.seek(io::SeekFrom::Start(0))?;
+        self.fd.set_len(0)?;
         match self.config.format {
             FileFormat::StrictEncoded => {
                 accounts.strict_encode(&mut self.fd)?;
