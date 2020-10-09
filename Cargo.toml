@@ -18,8 +18,8 @@ required-features = ["integration", "cli"]
 
 [dependencies]
 # Rust language
-amplify = "~1.1.1"
-amplify_derive = "~1.1.1"
+amplify = "~1.2.0"
+amplify_derive = "~1.2.0"
 lazy_static = "~1.4.0"
 # Serialization & parsing
 serde = { version = "~1.0.111", features = ["derive"] }
@@ -49,18 +49,20 @@ num-derive = "~0.3.0"
 
 [dependencies.lnpbp]
 git = "https://github.com/LNP-BP/rust-lnpbp"
-branch = "master"
+tag = "v0.1.0-rc.1"
 features = ["lnp", "keygen", "elgamal", "tokio", "serde", "tor", "url", "websockets"]
 
 [dependencies.lnpbp_derive]
 git = "https://github.com/LNP-BP/rust-lnpbp"
-branch = "master"
+tag = "v0.1.0-rc.1"
 
 [patch.crates-io]
-bitcoin = { git = "https://github.com/LNP-BP/rust-bitcoin", branch = "develop" }
-bitcoin_hashes = { git = "https://github.com/LNP-BP/bitcoin_hashes", tag = "lnpbp-v0.1.0-beta-4" }
-lightning = { git = "https://github.com/LNP-BP/rust-lightning", branch = "develop", optional = true }
-miniscript = { git = "https://github.com/LNP-BP/rust-miniscript", branch = "develop" }
+# We need this b/c of breaking change in tagged hash type generation
+bitcoin_hashes = { git = "https://github.com/LNP-BP/bitcoin_hashes", tag = "lnpbp-v0.1.0-rc1" }
+bitcoin = { git = "https://github.com/LNP-BP/rust-bitcoin", tag = "lnpbp-v0.1.0-rc1" }
+# We need custom branches here just to depend on the same bitcoin master and do
+# not have secp256k1 version conflict
+miniscript = { git = "https://github.com/LNP-BP/rust-miniscript", tag = "lnpbp-v0.1.0-rc1" }
 
 [features]
 default = []
