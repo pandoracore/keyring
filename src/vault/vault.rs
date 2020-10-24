@@ -154,10 +154,18 @@ impl Vault {
 
     pub fn sign_psbt(
         &self,
-        _psbt: PartiallySignedTransaction,
-        _decryption_key: &mut SecretKey,
+        id: XpubIdentifier,
+        psbt: PartiallySignedTransaction,
+        decryption_key: &mut SecretKey,
     ) -> Result<PartiallySignedTransaction, RuntimeError> {
-        unimplemented!()
+        debug!("Signing PSBT using all private keys from account {}", id);
+        let account = self.account_by_id(id).ok_or(Error::NotFound)?;
+        trace!("Keys account for key id is found: {}", account);
+        let pubkey = account.xpubkey().public_key;
+        trace!("Public key used for signing: {}", pubkey);
+        let digest = sha256::Hash::hash(&pubkey.key.serialize());
+        trace!("Signing key digest {}", digest);
+        Ok(account.sign_psbt(digest, &mut decryption_key)?)
     }
 
     pub fn sign_key(
