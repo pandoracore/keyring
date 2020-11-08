@@ -14,10 +14,10 @@
 use std::collections::HashSet;
 
 use lnpbp::bitcoin::hash_types::XpubIdentifier;
+use lnpbp::bitcoin::util::bip32::Fingerprint;
 #[cfg(feature = "daemon")]
-use lnpbp::bitcoin::util::bip32::DefaultResolver;
 use lnpbp::bitcoin::util::bip32::KeySource;
-use lnpbp::bitcoin::util::bip32::{Fingerprint, KeyApplication};
+use lnpbp::bp::bip32::KeyApplication;
 use lnpbp::bp::chain::AssetId;
 
 #[cfg(feature = "daemon")]
@@ -71,10 +71,12 @@ impl From<&KeysAccount> for AccountInfo {
             details,
             key_id: account.identifier(),
             fingerprint: account.fingerprint(),
-            application: account
-                .xpubkey()
-                .version
-                .application::<DefaultResolver>(),
+            application: None,
+            // TODO: Re-emable after KeyApplications will get to rust-bitcoin
+            /* account
+            .xpubkey()
+            .version
+            .application::<DefaultResolver>(), */
             assets: account.assets().clone(),
             key_source: None,
         }

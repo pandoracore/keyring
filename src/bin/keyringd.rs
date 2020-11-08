@@ -18,13 +18,13 @@
 #[macro_use]
 extern crate log;
 
-use amplify::TryService;
 use clap::Clap;
 use core::convert::TryInto;
 use log::LevelFilter;
 
 use keyring::daemon::{Config, Opts, Runtime};
 use keyring::error::BootstrapError;
+use keyring::TryService;
 
 #[tokio::main]
 async fn main() -> Result<!, BootstrapError> {

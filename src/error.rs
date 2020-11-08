@@ -71,18 +71,6 @@ pub enum BootstrapError {
     Other,
 }
 
-impl From<BootstrapError> for String {
-    fn from(err: BootstrapError) -> Self {
-        format!("{}", err)
-    }
-}
-
-impl From<&str> for BootstrapError {
-    fn from(err: &str) -> Self {
-        BootstrapError::ArgParseError(err.to_string())
-    }
-}
-
 #[derive(Debug, Display, Error, From)]
 #[display(Debug)]
 pub enum RuntimeError {

@@ -17,9 +17,10 @@ use lnpbp::bitcoin::hash_types::XpubIdentifier;
 use lnpbp::bitcoin::hashes::{sha256, Hash};
 use lnpbp::bitcoin::secp256k1::{PublicKey, SecretKey, Signature};
 use lnpbp::bitcoin::util::bip32::{
-    DerivationPath, ExtendedPrivKey, ExtendedPubKey, KeyApplication,
+    DerivationPath, ExtendedPrivKey, ExtendedPubKey,
 };
 use lnpbp::bitcoin::util::psbt::PartiallySignedTransaction;
+use lnpbp::bp::bip32::KeyApplication;
 use lnpbp::bp::chain::{AssetId, Chain};
 
 use super::{driver, keymgm::Error, Driver, FileDriver, Keyring, KeysAccount};
@@ -154,10 +155,10 @@ impl Vault {
 
     pub fn sign_psbt(
         &self,
-        id: XpubIdentifier,
-        psbt: PartiallySignedTransaction,
-        decryption_key: &mut SecretKey,
+        _psbt: PartiallySignedTransaction,
+        _decryption_key: &mut SecretKey,
     ) -> Result<PartiallySignedTransaction, RuntimeError> {
+        /* TODO: Implement
         debug!("Signing PSBT using all private keys from account {}", id);
         let account = self.account_by_id(id).ok_or(Error::NotFound)?;
         trace!("Keys account for key id is found: {}", account);
@@ -165,7 +166,8 @@ impl Vault {
         trace!("Public key used for signing: {}", pubkey);
         let digest = sha256::Hash::hash(&pubkey.key.serialize());
         trace!("Signing key digest {}", digest);
-        Ok(account.sign_psbt(digest, &mut decryption_key)?)
+        Ok(account.sign_psbt(digest, decryption_key)?) */
+        unimplemented!()
     }
 
     pub fn sign_key(

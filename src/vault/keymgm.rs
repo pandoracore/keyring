@@ -33,13 +33,14 @@ use lnpbp::bitcoin;
 use lnpbp::bitcoin::hashes::hex::{FromHex, ToHex};
 use lnpbp::bitcoin::secp256k1;
 use lnpbp::bitcoin::util::bip32::{
-    self, DefaultResolver, DerivationPath, ExtendedPrivKey, ExtendedPubKey,
-    Fingerprint, IntoDerivationPath, KeyApplication, KeySource,
-    VersionResolver,
+    self, DerivationPath, ExtendedPrivKey, ExtendedPubKey, Fingerprint,
+    KeySource,
 };
 use lnpbp::bitcoin::XpubIdentifier;
-use lnpbp::bp::chain::AssetId;
-use lnpbp::bp::Chain;
+use lnpbp::bp::bip32::{
+    Decode, DerivationPathMaster, Encode, IntoDerivationPath, KeyApplication,
+};
+use lnpbp::bp::chain::{AssetId, Chain};
 use lnpbp::elgamal;
 use lnpbp::miniscript::bitcoin::secp256k1::Signature;
 use secp256k1::rand::{thread_rng, RngCore};
@@ -661,7 +662,7 @@ impl KeysAccount {
         details: impl ToString,
         assets: HashSet<AssetId>,
         chain: &Chain,
-        application: KeyApplication,
+        _application: KeyApplication,
         encryption_key: secp256k1::PublicKey,
     ) -> Result<Self, Error> {
         debug!("Generating seed");
@@ -673,12 +674,8 @@ impl KeysAccount {
 
         trace!("Creating master extended private key from the seed");
         let xprivkey = ExtendedPrivKey::new_master(
-            DefaultResolver::resolve(
-                bitcoin::Network::try_from(chain)
-                    .unwrap_or(bitcoin::Network::Bitcoin),
-                application,
-                true,
-            ),
+            bitcoin::Network::try_from(chain)
+                .unwrap_or(bitcoin::Network::Bitcoin),
             &seed,
         );
         // Wiping out seed
@@ -687,8 +684,9 @@ impl KeysAccount {
 
         trace!("Creating master extended public key from the xpriv");
         let xpubkey =
-            ExtendedPubKey::from_private(&lnpbp::SECP256K1, &xprivkey)
-                .ok_or(Error::ResolverFailure)?;
+            ExtendedPubKey::from_private(&lnpbp::SECP256K1, &xprivkey);
+        // TODO: Uncomment after key resolves will get into rust-bitcoin
+        //        .ok_or(Error::ResolverFailure)?;
 
         trace!("Creating blinding and unblinding keys for Elgamal encryption");
         thread_rng().fill_bytes(&mut random);
@@ -760,8 +758,9 @@ impl KeysAccount {
 
         let mut master_xpriv = self.xprivkey(&mut decryption_key)?;
         let master_xpub =
-            ExtendedPubKey::from_private(&lnpbp::SECP256K1, &master_xpriv)
-                .ok_or(Error::ResolverFailure)?;
+            ExtendedPubKey::from_private(&lnpbp::SECP256K1, &master_xpriv);
+        // TODO: Uncomment after key resolves will get into rust-bitcoin
+        //  .ok_or(Error::ResolverFailure)?;
         if master_xpub != self.xpubkey {
             // Instantly wiping out xpriv:
             master_xpriv.private_key.key.add_assign(&random)?;
@@ -772,8 +771,9 @@ impl KeysAccount {
         let xprivkey =
             master_xpriv.derive_priv(&lnpbp::SECP256K1, &derivation)?;
         let xpubkey =
-            ExtendedPubKey::from_private(&lnpbp::SECP256K1, &xprivkey)
-                .ok_or(Error::ResolverFailure)?;
+            ExtendedPubKey::from_private(&lnpbp::SECP256K1, &xprivkey);
+        // TODO: Uncomment after key resolves will get into rust-bitcoin
+        //  .ok_or(Error::ResolverFailure)?;
 
         // Creating blinding and unblinding keys; doing the encryption
         thread_rng().fill_bytes(&mut random);
@@ -837,8 +837,7 @@ impl KeysAccount {
         );
 
         trace!("Decoding extended private key");
-        let xprivkey =
-            ExtendedPrivKey::<DefaultResolver>::decode(&secret_data[..78]);
+        let xprivkey = ExtendedPrivKey::decode(&secret_data[..78]);
 
         trace!("Wiping out secret data");
         thread_rng().fill_bytes(&mut secret_data);

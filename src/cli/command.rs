@@ -11,13 +11,13 @@
 // along with this software.
 // If not, see <https://www.gnu.org/licenses/agpl-3.0-standalone.html>.
 
-use amplify::Exec;
 use std::path::PathBuf;
 
 use lnpbp::bitcoin::hashes::hex::{FromHex, ToHex};
 use lnpbp::bitcoin::secp256k1;
-use lnpbp::bitcoin::util::bip32::{DerivationPath, KeyApplication};
+use lnpbp::bitcoin::util::bip32::DerivationPath;
 use lnpbp::bitcoin::XpubIdentifier;
+use lnpbp::bp::bip32::KeyApplication;
 use lnpbp::bp::Chain;
 use lnpbp::strict_encoding::strict_encode;
 
@@ -25,34 +25,7 @@ use super::format;
 use super::Runtime;
 use crate::api;
 use crate::api::Reply;
-
-pub trait TryFromStr
-where
-    Self: Sized,
-{
-    type Error: std::error::Error;
-    fn try_from_str(s: &str) -> Result<Self, Self::Error>;
-}
-
-/// Error for an unknown enum representation; either string or numeric
-#[derive(Clone, Copy, PartialEq, Eq, Debug, Display, Error)]
-#[display(Debug)]
-pub struct EnumReprError;
-
-impl TryFromStr for KeyApplication {
-    type Error = EnumReprError;
-    fn try_from_str(s: &str) -> Result<Self, Self::Error> {
-        Ok(match s.to_lowercase().as_str() {
-            "pkh" => KeyApplication::Legacy,
-            "sh" => KeyApplication::Legacy,
-            "wpkh" => KeyApplication::SegWitV0Singlesig,
-            "wsh" => KeyApplication::SegWitV0Miltisig,
-            "wpkh-sh" => KeyApplication::SegWitLegacySinglesig,
-            "wsh-sh" => KeyApplication::SegWitLegacyMultisig,
-            _ => Err(EnumReprError)?,
-        })
-    }
-}
+use crate::Exec;
 
 // Command-line commands:
 //
@@ -106,20 +79,16 @@ pub enum SeedCommand {
     /// Creates new keyring with new seed and master key pair
     Create {
         /// Target chain for the key
-        #[clap()]
         chain: Chain,
 
         /// Application scope. Possible values are:
         /// pkh, sh, wpkh, wsh, wpkh-sh, wsh-sh
-        #[clap(parse(try_from_str = KeyApplication::try_from_str))]
         application: KeyApplication,
 
         /// Name for newly generated account with a seed phrase
-        #[clap()]
         name: String,
 
         /// More details information about the new account
-        #[clap()]
         details: Option<String>,
     },
 

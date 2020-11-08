@@ -15,10 +15,10 @@ use std::collections::HashSet;
 
 use lnpbp::bitcoin::hash_types::XpubIdentifier;
 use lnpbp::bitcoin::secp256k1::SecretKey;
-use lnpbp::bitcoin::util::bip32::{DerivationPath, KeyApplication};
+use lnpbp::bitcoin::util::bip32::DerivationPath;
 use lnpbp::bitcoin::util::psbt::PartiallySignedTransaction;
-use lnpbp::bp::chain::AssetId;
-use lnpbp::bp::Chain;
+use lnpbp::bp::bip32::KeyApplication;
+use lnpbp::bp::chain::{AssetId, Chain};
 
 use super::types::AuthCode;
 

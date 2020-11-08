@@ -11,7 +11,6 @@
 // along with this software.
 // If not, see <https://www.gnu.org/licenses/agpl-3.0-standalone.html>.
 
-use amplify::TryService;
 use std::any::Any;
 use std::sync::Arc;
 use tokio::sync::Mutex;
@@ -23,6 +22,7 @@ use lnpbp::lnp::{transport, NoEncryption, Session, Unmarshall, Unmarshaller};
 use super::Config;
 use crate::api::{message, Reply, Request};
 use crate::error::{BootstrapError, RuntimeError};
+use crate::TryService;
 use crate::Vault;
 
 pub struct Runtime {
