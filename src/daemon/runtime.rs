@@ -16,8 +16,11 @@ use std::sync::Arc;
 use tokio::sync::Mutex;
 
 use lnpbp::lnp::presentation::Encode;
-use lnpbp::lnp::zmq::ApiType;
-use lnpbp::lnp::{transport, NoEncryption, Session, Unmarshall, Unmarshaller};
+use lnpbp::lnp::zmqsocket::{self, ZmqType};
+use lnpbp::lnp::{
+    session, CreateUnmarshaller, PlainTranscoder, Session, Unmarshall,
+    Unmarshaller,
+};
 
 use super::Config;
 use crate::api::{message, Reply, Request};
@@ -30,7 +33,7 @@ pub struct Runtime {
     config: Config,
 
     /// Stored sessions
-    session_rpc: Session<NoEncryption, transport::zmq::Connection>,
+    session_rpc: session::Raw<PlainTranscoder, zmqsocket::Connection>,
 
     /// Secure key vault
     vault: Arc<Mutex<Vault>>,
@@ -45,11 +48,10 @@ impl Runtime {
         let vault = Vault::with(&config.vault)?;
 
         debug!("Opening ZMQ socket {}", config.zmq_endpoint);
-        let mut context = zmq::Context::new();
-        let session_rpc = Session::new_zmq_unencrypted(
-            ApiType::Server,
-            &mut context,
-            config.zmq_endpoint.clone(),
+        let session_rpc = session::Raw::with_zmq_unencrypted(
+            ZmqType::Rep,
+            &config.zmq_endpoint,
+            None,
             None,
         )?;
 
@@ -90,7 +92,7 @@ impl Runtime {
             "Sending {} bytes back to the client over ZMQ RPC",
             data.len()
         );
-        self.session_rpc.send_raw_message(data)?;
+        self.session_rpc.send_raw_message(&data)?;
         Ok(())
     }
 

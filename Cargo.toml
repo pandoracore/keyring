@@ -23,9 +23,9 @@ required-features = ["integration", "cli"]
 [dependencies]
 # Rust language
 amplify = "~2.3.1"
-amplify_derive = "~2.3.0"
-lnpbp = { version = "~0.1.2", features = ["lnp", "keygen", "elgamal", "tokio", "serde", "tor", "url", "websockets"] }
-lnpbp_derive = "~0.1.2"
+amplify_derive = "~2.3.1"
+lnpbp = { git = "git://github.com/LNP-BP/rust-lnpbp", features = ["lnp", "keygen", "elgamal", "tokio", "serde", "tor", "url", "websockets"] }
+lnpbp_derive = { git = "git://github.com/LNP-BP/rust-lnpbp" }
 lazy_static = "~1.4.0"
 # Serialization & parsing
 serde = { version = "~1.0.111", features = ["derive"] }

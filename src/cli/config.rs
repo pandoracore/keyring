@@ -23,7 +23,7 @@ use ::std::io::Write;
 use ::std::process::exit;
 
 use lnpbp::bitcoin::secp256k1;
-use lnpbp::lnp::transport::zmq::SocketLocator;
+use lnpbp::lnp::zmqsocket::ZmqSocketAddr;
 
 use super::Command;
 use crate::constants::{
@@ -79,7 +79,7 @@ pub struct Config {
     pub data_dir: String,
     pub log_level: LogLevel,
     #[serde(with = "serde_with::rust::display_fromstr")]
-    pub endpoint: SocketLocator,
+    pub endpoint: ZmqSocketAddr,
 }
 
 #[derive(

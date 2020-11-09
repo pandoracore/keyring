@@ -24,7 +24,7 @@ use ::std::net::SocketAddr;
 use ::std::process::exit;
 
 use lnpbp::bitcoin::secp256k1;
-use lnpbp::lnp::transport::zmq::SocketLocator;
+use lnpbp::lnp::zmqsocket::ZmqSocketAddr;
 
 use crate::constants::*;
 use crate::error::ConfigInitError;
@@ -73,7 +73,7 @@ pub struct Config {
     pub data_dir: String,
     pub log_level: LogLevel,
     #[serde(with = "serde_with::rust::display_fromstr")]
-    pub zmq_endpoint: SocketLocator,
+    pub zmq_endpoint: ZmqSocketAddr,
     pub tcp_endpoint: SocketAddr,
     pub vault: vault::driver::Config,
 }

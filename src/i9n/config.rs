@@ -11,14 +11,14 @@
 // along with this software.
 // If not, see <https://www.gnu.org/licenses/agpl-3.0-standalone.html>.
 
-use lnpbp::lnp::transport::zmq::SocketLocator;
+use lnpbp::lnp::zmqsocket::ZmqSocketAddr;
 
 use crate::constants::KEYRING_ZMQ_ENDPOINT;
 
 #[derive(Clone, PartialEq, Eq, Debug, Display)]
 #[display(Debug)]
 pub struct Config {
-    pub endpoint: SocketLocator,
+    pub endpoint: ZmqSocketAddr,
 }
 
 impl Default for Config {

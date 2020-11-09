@@ -12,8 +12,11 @@
 // If not, see <https://www.gnu.org/licenses/agpl-3.0-standalone.html>.
 
 use lnpbp::lnp::presentation::Encode;
-use lnpbp::lnp::zmq::ApiType;
-use lnpbp::lnp::{transport, NoEncryption, Session, Unmarshall, Unmarshaller};
+use lnpbp::lnp::zmqsocket::{self, ZmqType};
+use lnpbp::lnp::{
+    session, CreateUnmarshaller, PlainTranscoder, Session, Unmarshall,
+    Unmarshaller,
+};
 
 use super::Config;
 use crate::api::{self, Reply, Request};
@@ -21,23 +24,21 @@ use crate::error::BootstrapError;
 
 pub struct Runtime {
     pub(super) config: Config,
-    pub(super) context: zmq::Context,
-    pub(super) session_rpc: Session<NoEncryption, transport::zmq::Connection>,
+    pub(super) session_rpc:
+        session::Raw<PlainTranscoder, zmqsocket::Connection>,
     pub(super) unmarshaller: Unmarshaller<Reply>,
 }
 
 impl Runtime {
     pub fn init(config: Config) -> Result<Self, BootstrapError> {
-        let mut context = zmq::Context::new();
-        let session_rpc = Session::new_zmq_unencrypted(
-            ApiType::Client,
-            &mut context,
-            config.endpoint.clone(),
+        let session_rpc = session::Raw::with_zmq_unencrypted(
+            ZmqType::Req,
+            &config.endpoint,
+            None,
             None,
         )?;
         Ok(Self {
             config,
-            context,
             session_rpc,
             unmarshaller: Reply::create_unmarshaller(),
         })
@@ -45,7 +46,7 @@ impl Runtime {
 
     pub fn request(&mut self, request: Request) -> Result<Reply, api::Error> {
         let data = request.encode()?;
-        self.session_rpc.send_raw_message(data)?;
+        self.session_rpc.send_raw_message(&data)?;
         let raw = self.session_rpc.recv_raw_message()?;
         let reply = self.unmarshaller.unmarshall(&raw)?;
         Ok((&*reply).clone())
