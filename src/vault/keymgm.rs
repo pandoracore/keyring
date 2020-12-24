@@ -183,6 +183,7 @@ impl Default for UpdateMode {
     StrictEncode,
     StrictDecode,
 )]
+#[serde(crate = "serde_crate")]
 #[display(Debug)]
 pub struct Keyring {
     master_account: KeysAccount,
@@ -628,14 +629,15 @@ impl Keyring {
     Clone,
     PartialEq,
     Eq,
-    Display,
     Debug,
+    Display,
     Serialize,
     Deserialize,
     StrictEncode,
     StrictDecode,
 )]
-#[display(Debug)]
+#[serde(crate = "serde_crate")]
+#[display("{name} ({xpubkey})")]
 pub struct KeysAccount {
     xpubkey: ExtendedPubKey,
 

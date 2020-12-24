@@ -11,32 +11,29 @@
 // along with this software.
 // If not, see <https://www.gnu.org/licenses/agpl-3.0-standalone.html>.
 
+#[cfg(feature = "serde")]
+use serde_with::DisplayFromStr;
 use std::collections::HashSet;
 
 use lnpbp::bitcoin::hash_types::XpubIdentifier;
 use lnpbp::bitcoin::util::bip32::Fingerprint;
-#[cfg(feature = "daemon")]
 use lnpbp::bitcoin::util::bip32::KeySource;
 use lnpbp::bp::bip32::KeyApplication;
 use lnpbp::bp::chain::AssetId;
 
-#[cfg(feature = "daemon")]
+#[cfg(feature = "node")]
 use crate::vault::{Keyring, KeysAccount};
 
 pub type AuthCode = u32;
 
-#[derive(
-    Clone,
-    PartialEq,
-    Eq,
-    Debug,
-    Display,
-    StrictEncode,
-    StrictDecode,
-    Serialize,
-    Deserialize,
+#[cfg_attr(feature = "serde", serde_as)]
+#[cfg_attr(
+    feature = "serde",
+    derive(Serialize, Deserialize),
+    serde(crate = "serde_crate")
 )]
-#[display(Debug)]
+#[derive(Clone, PartialEq, Eq, Debug, Display, StrictEncode, StrictDecode)]
+#[display("AccountInfo({id}, {name}, {key_id}, {fingerprint}, ...)")]
 #[non_exhaustive]
 pub struct AccountInfo {
     pub id: XpubIdentifier,
@@ -44,12 +41,13 @@ pub struct AccountInfo {
     pub details: Option<String>,
     pub key_id: XpubIdentifier,
     pub fingerprint: Fingerprint,
+    #[serde_as(as = "HashSet<DisplayFromStr>")]
     pub assets: HashSet<AssetId>,
     pub application: Option<KeyApplication>,
     pub key_source: Option<KeySource>,
 }
 
-#[cfg(feature = "daemon")]
+#[cfg(feature = "node")]
 impl From<&Keyring> for AccountInfo {
     fn from(keyring: &Keyring) -> Self {
         let mut info = AccountInfo::from(keyring.master_account());
@@ -58,7 +56,7 @@ impl From<&Keyring> for AccountInfo {
     }
 }
 
-#[cfg(feature = "daemon")]
+#[cfg(feature = "node")]
 impl From<&KeysAccount> for AccountInfo {
     fn from(account: &KeysAccount) -> Self {
         let details = match account.details().len() {

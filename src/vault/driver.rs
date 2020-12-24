@@ -27,7 +27,7 @@ pub trait Driver: Send + Sync {
 }
 
 #[derive(Clone, PartialEq, Eq, Debug, Display, Serialize, Deserialize)]
-#[serde(tag = "driver")]
+#[serde(crate = "serde_crate", tag = "driver")]
 #[display(Debug)]
 #[non_exhaustive]
 pub enum Config {

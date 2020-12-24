@@ -11,24 +11,7 @@
 // along with this software.
 // If not, see <https://www.gnu.org/licenses/agpl-3.0-standalone.html>.
 
-#[derive(Clap, Copy, Clone, Debug, Display)]
-#[display(doc_comments)]
-pub enum BinaryData {
-    /// Raw/binary file with data
-    File,
-
-    /// Data encoded as hexadecimal (Base16) string
-    Hex,
-
-    /// Data encoded as Base64 string
-    Base64,
-}
-
-impl Default for BinaryData {
-    fn default() -> Self {
-        BinaryData::Hex
-    }
-}
+use clap::Clap;
 
 #[derive(Clap, Copy, Clone, Debug, Display)]
 #[display(doc_comments)]
@@ -49,84 +32,6 @@ pub enum Script {
 impl Default for Script {
     fn default() -> Self {
         Script::Miniscript
-    }
-}
-
-#[derive(Clap, Copy, Clone, Debug, Display)]
-#[display(doc_comments)]
-pub enum StructuredData {
-    /// JSON
-    Json,
-
-    /// YAML
-    Yaml,
-
-    /// TOML
-    Toml,
-
-    /// Strict encoding - hex representation
-    StrictHex,
-
-    /// Strict encoding - Bech32 representation
-    StrictBech32,
-
-    /// Strict encoding - base64 representation
-    StrictBase64,
-}
-
-#[derive(Clap, Copy, Clone, Debug, Display)]
-#[display(doc_comments)]
-pub enum Tx {
-    /// Binary transaction data
-    Binary,
-
-    /// Transaction encoded as hexadecimal string
-    Hex,
-
-    /// Transaction encoded with Base64 encoding
-    Base64,
-
-    /// JSON description of transaction structure
-    Json,
-
-    /// YAML description of transaction structure
-    Yaml,
-
-    /// TOML description of transaction structure
-    Toml,
-}
-
-impl Default for Tx {
-    fn default() -> Self {
-        Tx::Binary
-    }
-}
-
-#[derive(Clap, Copy, Clone, Debug, Display)]
-#[display(doc_comments)]
-pub enum Psbt {
-    /// Binary PSBT data
-    Binary,
-
-    /// Hexadecimal encoding of PSBT data
-    Hex,
-
-    /// Base64 encoding of PSBT data
-    Base64,
-
-    /// JSON description of PSBT structure
-    Json,
-
-    /// YAML description of PSBT structure
-    Yaml,
-
-    /// TOML description of PSBT structure
-    Toml,
-}
-
-impl Default for Psbt {
-    fn default() -> Self {
-        Self::Base64
     }
 }
 

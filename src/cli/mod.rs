@@ -11,11 +11,14 @@
 // along with this software.
 // If not, see <https://www.gnu.org/licenses/agpl-3.0-standalone.html>.
 
+mod client;
 mod command;
 mod config;
 pub mod format;
-mod runtime;
+mod opts;
 
-pub use command::Command;
-pub use config::{Config, Opts};
-pub use runtime::Runtime;
+pub use client::Client;
+pub use config::Config;
+pub use opts::{
+    Command, Opts, SeedCommand, SignCommand, XPrivkeyCommand, XPubkeyCommand,
+};

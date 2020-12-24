@@ -14,36 +14,43 @@
 //use lnpbp::bitcoin::util::bip32::{ExtendedPrivKey, ExtendedPubKey};
 use lnpbp::lnp::presentation::Error;
 
-#[cfg(feature = "daemon")]
+#[cfg(feature = "server")]
 use crate::error::RuntimeError;
 
 #[derive(Clone, Debug, Display, LnpApi)]
 #[lnp_api(encoding = "strict")]
-#[display(Debug)]
 #[non_exhaustive]
 pub enum Reply {
     #[lnp_api(type = 0x0100)]
+    #[display("success()")]
     Success,
 
     #[lnp_api(type = 0x0102)]
-    Failure(crate::api::message::Failure),
+    #[display("failure({0})")]
+    Failure(lnpbp_services::rpc::Failure),
 
     #[lnp_api(type = 0x0200)]
-    Keylist(Vec<crate::api::types::AccountInfo>),
+    #[display("keylist(...)")]
+    Keylist(Vec<crate::rpc::types::AccountInfo>),
 
     #[lnp_api(type = 0x0202)]
-    AccountInfo(crate::api::types::AccountInfo),
+    #[display("account_info({0})")]
+    AccountInfo(crate::rpc::types::AccountInfo),
 
     #[lnp_api(type = 0x0300)]
+    #[display("xpriv(...)")]
     XPriv(::lnpbp::bitcoin::util::bip32::ExtendedPrivKey),
 
     #[lnp_api(type = 0x0302)]
+    #[display("xpub({0})")]
     XPub(::lnpbp::bitcoin::util::bip32::ExtendedPubKey),
 
     #[lnp_api(type = 0x0500)]
+    #[display("signature({0})")]
     Signature(::lnpbp::bitcoin::secp256k1::Signature),
 
     #[lnp_api(type = 0x0502)]
+    #[display("psbt(...)")]
     Psbt(::lnpbp::bitcoin::util::psbt::PartiallySignedTransaction),
 }
 
@@ -51,19 +58,19 @@ impl From<Error> for Reply {
     fn from(err: Error) -> Self {
         // TODO: Save error code taken from `Error::to_value()` after
         //       implementation of `ToValue` trait and derive macro for enums
-        Reply::Failure(crate::api::message::Failure {
+        Reply::Failure(lnpbp_services::rpc::Failure {
             code: 0,
             info: format!("{}", err),
         })
     }
 }
 
-#[cfg(feature = "daemon")]
+#[cfg(feature = "server")]
 impl From<RuntimeError> for Reply {
     fn from(err: RuntimeError) -> Self {
         // TODO: Save error code taken from `Error::to_value()` after
         //       implementation of `ToValue` trait and derive macro for enums
-        Reply::Failure(crate::api::message::Failure {
+        Reply::Failure(lnpbp_services::rpc::Failure {
             code: 0,
             info: format!("{}", err),
         })

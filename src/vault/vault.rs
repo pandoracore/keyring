@@ -24,8 +24,8 @@ use lnpbp::bp::bip32::KeyApplication;
 use lnpbp::bp::chain::{AssetId, Chain};
 
 use super::{driver, keymgm::Error, Driver, FileDriver, Keyring, KeysAccount};
-use crate::api::types::AccountInfo;
 use crate::error::{BootstrapError, RuntimeError};
+use crate::rpc::types::AccountInfo;
 
 pub struct Vault {
     driver: Box<dyn Driver>,

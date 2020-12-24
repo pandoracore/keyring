@@ -23,14 +23,7 @@ use lnpbp::bp::chain::{AssetId, Chain};
 use super::types::AuthCode;
 
 #[derive(Clone, Debug, Display, StrictEncode, StrictDecode)]
-#[display(Debug)]
-pub struct Failure {
-    pub code: u16,
-    pub info: String,
-}
-
-#[derive(Clone, Debug, Display, StrictEncode, StrictDecode)]
-#[display(Debug)]
+#[display("{name}, {chain}, {application:?} ...")]
 pub struct Seed {
     pub name: String,
     pub chain: Chain,
@@ -40,7 +33,7 @@ pub struct Seed {
 }
 
 #[derive(Clone, Debug, Display, StrictEncode, StrictDecode)]
-#[display(Debug)]
+#[display("{key_id}, ...")]
 pub struct Export {
     pub key_id: XpubIdentifier,
     pub decryption_key: SecretKey,
@@ -48,7 +41,7 @@ pub struct Export {
 }
 
 #[derive(Clone, Debug, Display, StrictEncode, StrictDecode)]
-#[display(Debug)]
+#[display("{from}, {path}, {name}, ...")]
 pub struct Derive {
     pub from: XpubIdentifier,
     pub path: DerivationPath,
@@ -60,7 +53,7 @@ pub struct Derive {
 }
 
 #[derive(Clone, Debug, Display, StrictEncode, StrictDecode)]
-#[display(Debug)]
+#[display("...")]
 pub struct SignPsbt {
     pub psbt: PartiallySignedTransaction,
     pub decryption_key: SecretKey,
@@ -68,7 +61,7 @@ pub struct SignPsbt {
 }
 
 #[derive(Clone, Debug, Display, StrictEncode, StrictDecode)]
-#[display(Debug)]
+#[display("{key_id}, ...")]
 pub struct SignKey {
     pub key_id: XpubIdentifier,
     pub decryption_key: SecretKey,
@@ -76,7 +69,7 @@ pub struct SignKey {
 }
 
 #[derive(Clone, Debug, Display, StrictEncode, StrictDecode)]
-#[display(Debug)]
+#[display("{key_id}, {data:#x?}, ...")]
 pub struct SignData {
     pub key_id: XpubIdentifier,
     pub data: Vec<u8>,

@@ -11,23 +11,22 @@
 // along with this software.
 // If not, see <https://www.gnu.org/licenses/agpl-3.0-standalone.html>.
 
-use lnpbp::lnp::zmqsocket::ZmqSocketAddr;
+use lnpbp::lnp;
+use lnpbp_services::rpc::Failure;
 
-use crate::constants::KEYRING_ZMQ_ENDPOINT;
-
-#[derive(Clone, PartialEq, Eq, Debug, Display)]
+#[derive(Clone, Debug, Display, Error, From)]
 #[display(Debug)]
-pub struct Config {
-    pub endpoint: ZmqSocketAddr,
+pub enum Error {
+    UnexpectedServerResponse,
+
+    #[from]
+    ServerFailure(Failure),
+
+    #[from]
+    PresentationError(lnp::presentation::Error),
+
+    #[from]
+    TransportError(lnp::transport::Error),
 }
 
-impl Default for Config {
-    fn default() -> Self {
-        Self {
-            // TODO: Replace on KEYRING_TCP_ENDPOINT
-            endpoint: KEYRING_ZMQ_ENDPOINT
-                .parse()
-                .expect("Error in KEYRING_ZMQ_ENDPOINT constant value"),
-        }
-    }
-}
+impl lnpbp_services::error::Error for Error {}

@@ -14,12 +14,10 @@
 use ::std::io;
 #[cfg(feature = "shell")]
 use settings::ConfigError;
-#[cfg(feature = "daemon")]
-use tokio::task::JoinError;
 
 use lnpbp::lnp;
 
-#[cfg(feature = "daemon")]
+#[cfg(feature = "server")]
 use crate::vault;
 
 #[cfg(feature = "shell")]
@@ -51,21 +49,17 @@ pub enum BootstrapError {
     #[from]
     ZmqSocketError(zmq::Error),
 
-    #[cfg(feature = "daemon")]
-    #[from]
-    MultithreadError(JoinError),
-
     #[cfg(feature = "monitoring")]
     MonitorSocketError(Box<dyn std::error::Error + Send>),
 
     #[from]
     TransportError(lnp::transport::Error),
 
-    #[cfg(feature = "daemon")]
+    #[cfg(feature = "server")]
     #[from]
     VaultError(vault::driver::Error),
 
-    #[cfg(feature = "daemon")]
+    #[cfg(feature = "server")]
     ConfigInitError,
 
     Other,
@@ -80,11 +74,11 @@ pub enum RuntimeError {
     #[from(lnp::presentation::Error)]
     Message,
 
-    #[cfg(feature = "daemon")]
+    #[cfg(feature = "server")]
     #[from]
     VaultDriver(vault::driver::Error),
 
-    #[cfg(feature = "daemon")]
+    #[cfg(feature = "server")]
     #[from]
     KeyManagement(vault::keymgm::Error),
 }

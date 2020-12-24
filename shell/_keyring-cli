@@ -1,0 +1,523 @@
+#compdef keyring-cli
+
+autoload -U is-at-least
+
+_keyring-cli() {
+    typeset -A opt_args
+    typeset -a _arguments_options
+    local ret=1
+
+    if is-at-least 5.2; then
+        _arguments_options=(-s -S -C)
+    else
+        _arguments_options=(-s -C)
+    fi
+
+    local context curcontext="$curcontext" state line
+    _arguments "${_arguments_options[@]}" \
+'-d+[Data directory path]: :_files -/' \
+'--data-dir=[Data directory path]: :_files -/' \
+'*-T+[Use Tor]: :_hosts' \
+'*--tor-proxy=[Use Tor]: :_hosts' \
+'-x+[ZMQ socket name/address for daemon RPC interface]: :_files' \
+'--rpc-socket=[ZMQ socket name/address for daemon RPC interface]: :_files' \
+'-n+[Blockchain to use]' \
+'--chain=[Blockchain to use]' \
+'-c+[Path to the configuration file]: :_files' \
+'--config=[Path to the configuration file]: :_files' \
+'--init[Initializes config file with the default values]' \
+'*-v[Set verbosity level]' \
+'*--verbose[Set verbosity level]' \
+'-h[Prints help information]' \
+'--help[Prints help information]' \
+'-V[Prints version information]' \
+'--version[Prints version information]' \
+":: :_keyring-cli_commands" \
+"*::: :->keyring-cli" \
+&& ret=0
+    case $state in
+    (keyring-cli)
+        words=($line[1] "${words[@]}")
+        (( CURRENT += 1 ))
+        curcontext="${curcontext%:*:*}:keyring-cli-command-$line[1]:"
+        case $line[1] in
+            (seed)
+_arguments "${_arguments_options[@]}" \
+'-d+[Data directory path]: :_files -/' \
+'--data-dir=[Data directory path]: :_files -/' \
+'*-T+[Use Tor]: :_hosts' \
+'*--tor-proxy=[Use Tor]: :_hosts' \
+'-x+[ZMQ socket name/address for daemon RPC interface]: :_files' \
+'--rpc-socket=[ZMQ socket name/address for daemon RPC interface]: :_files' \
+'-n+[Blockchain to use]' \
+'--chain=[Blockchain to use]' \
+'*-v[Set verbosity level]' \
+'*--verbose[Set verbosity level]' \
+'-h[Prints help information]' \
+'--help[Prints help information]' \
+'-V[Prints version information]' \
+'--version[Prints version information]' \
+":: :_keyring-cli__seed_commands" \
+"*::: :->seed" \
+&& ret=0
+case $state in
+    (seed)
+        words=($line[1] "${words[@]}")
+        (( CURRENT += 1 ))
+        curcontext="${curcontext%:*:*}:keyring-cli-seed-command-$line[1]:"
+        case $line[1] in
+            (create)
+_arguments "${_arguments_options[@]}" \
+'-d+[Data directory path]: :_files -/' \
+'--data-dir=[Data directory path]: :_files -/' \
+'*-T+[Use Tor]: :_hosts' \
+'*--tor-proxy=[Use Tor]: :_hosts' \
+'-x+[ZMQ socket name/address for daemon RPC interface]: :_files' \
+'--rpc-socket=[ZMQ socket name/address for daemon RPC interface]: :_files' \
+'*-v[Set verbosity level]' \
+'*--verbose[Set verbosity level]' \
+'-h[Prints help information]' \
+'--help[Prints help information]' \
+'-V[Prints version information]' \
+'--version[Prints version information]' \
+':chain -- Target chain for the key:' \
+':application -- Application scope. Possible values are\: pkh, sh, wpkh, wsh, wpkh-sh, wsh-sh:' \
+':name -- Name for newly generated account with a seed phrase:' \
+'::details -- More details information about the new account:' \
+&& ret=0
+;;
+(import)
+_arguments "${_arguments_options[@]}" \
+'-d+[Data directory path]: :_files -/' \
+'--data-dir=[Data directory path]: :_files -/' \
+'*-T+[Use Tor]: :_hosts' \
+'*--tor-proxy=[Use Tor]: :_hosts' \
+'-x+[ZMQ socket name/address for daemon RPC interface]: :_files' \
+'--rpc-socket=[ZMQ socket name/address for daemon RPC interface]: :_files' \
+'-n+[Blockchain to use]' \
+'--chain=[Blockchain to use]' \
+'*-v[Set verbosity level]' \
+'*--verbose[Set verbosity level]' \
+'-h[Prints help information]' \
+'--help[Prints help information]' \
+'-V[Prints version information]' \
+'--version[Prints version information]' \
+':id:' \
+&& ret=0
+;;
+(export)
+_arguments "${_arguments_options[@]}" \
+'-d+[Data directory path]: :_files -/' \
+'--data-dir=[Data directory path]: :_files -/' \
+'*-T+[Use Tor]: :_hosts' \
+'*--tor-proxy=[Use Tor]: :_hosts' \
+'-x+[ZMQ socket name/address for daemon RPC interface]: :_files' \
+'--rpc-socket=[ZMQ socket name/address for daemon RPC interface]: :_files' \
+'-n+[Blockchain to use]' \
+'--chain=[Blockchain to use]' \
+'*-v[Set verbosity level]' \
+'*--verbose[Set verbosity level]' \
+'-h[Prints help information]' \
+'--help[Prints help information]' \
+'-V[Prints version information]' \
+'--version[Prints version information]' \
+':id:' \
+':file:' \
+&& ret=0
+;;
+        esac
+    ;;
+esac
+;;
+(xpub)
+_arguments "${_arguments_options[@]}" \
+'-d+[Data directory path]: :_files -/' \
+'--data-dir=[Data directory path]: :_files -/' \
+'*-T+[Use Tor]: :_hosts' \
+'*--tor-proxy=[Use Tor]: :_hosts' \
+'-x+[ZMQ socket name/address for daemon RPC interface]: :_files' \
+'--rpc-socket=[ZMQ socket name/address for daemon RPC interface]: :_files' \
+'-n+[Blockchain to use]' \
+'--chain=[Blockchain to use]' \
+'*-v[Set verbosity level]' \
+'*--verbose[Set verbosity level]' \
+'-h[Prints help information]' \
+'--help[Prints help information]' \
+'-V[Prints version information]' \
+'--version[Prints version information]' \
+":: :_keyring-cli__xpub_commands" \
+"*::: :->xpub" \
+&& ret=0
+case $state in
+    (xpub)
+        words=($line[1] "${words[@]}")
+        (( CURRENT += 1 ))
+        curcontext="${curcontext%:*:*}:keyring-cli-xpub-command-$line[1]:"
+        case $line[1] in
+            (list)
+_arguments "${_arguments_options[@]}" \
+'-f+[]: :(json yaml toml bin hex bech32 base64)' \
+'--format=[]: :(json yaml toml bin hex bech32 base64)' \
+'-d+[Data directory path]: :_files -/' \
+'--data-dir=[Data directory path]: :_files -/' \
+'*-T+[Use Tor]: :_hosts' \
+'*--tor-proxy=[Use Tor]: :_hosts' \
+'-x+[ZMQ socket name/address for daemon RPC interface]: :_files' \
+'--rpc-socket=[ZMQ socket name/address for daemon RPC interface]: :_files' \
+'-n+[Blockchain to use]' \
+'--chain=[Blockchain to use]' \
+'*-v[Set verbosity level]' \
+'*--verbose[Set verbosity level]' \
+'-h[Prints help information]' \
+'--help[Prints help information]' \
+'-V[Prints version information]' \
+'--version[Prints version information]' \
+&& ret=0
+;;
+(derive)
+_arguments "${_arguments_options[@]}" \
+'-d+[Data directory path]: :_files -/' \
+'--data-dir=[Data directory path]: :_files -/' \
+'*-T+[Use Tor]: :_hosts' \
+'*--tor-proxy=[Use Tor]: :_hosts' \
+'-x+[ZMQ socket name/address for daemon RPC interface]: :_files' \
+'--rpc-socket=[ZMQ socket name/address for daemon RPC interface]: :_files' \
+'-n+[Blockchain to use]' \
+'--chain=[Blockchain to use]' \
+'*-v[Set verbosity level]' \
+'*--verbose[Set verbosity level]' \
+'-h[Prints help information]' \
+'--help[Prints help information]' \
+'-V[Prints version information]' \
+'--version[Prints version information]' \
+':id:' \
+':path:' \
+&& ret=0
+;;
+(export)
+_arguments "${_arguments_options[@]}" \
+'-d+[Data directory path]: :_files -/' \
+'--data-dir=[Data directory path]: :_files -/' \
+'*-T+[Use Tor]: :_hosts' \
+'*--tor-proxy=[Use Tor]: :_hosts' \
+'-x+[ZMQ socket name/address for daemon RPC interface]: :_files' \
+'--rpc-socket=[ZMQ socket name/address for daemon RPC interface]: :_files' \
+'-n+[Blockchain to use]' \
+'--chain=[Blockchain to use]' \
+'*-v[Set verbosity level]' \
+'*--verbose[Set verbosity level]' \
+'-h[Prints help information]' \
+'--help[Prints help information]' \
+'-V[Prints version information]' \
+'--version[Prints version information]' \
+':id:' \
+':file:' \
+&& ret=0
+;;
+        esac
+    ;;
+esac
+;;
+(xpriv)
+_arguments "${_arguments_options[@]}" \
+'-d+[Data directory path]: :_files -/' \
+'--data-dir=[Data directory path]: :_files -/' \
+'*-T+[Use Tor]: :_hosts' \
+'*--tor-proxy=[Use Tor]: :_hosts' \
+'-x+[ZMQ socket name/address for daemon RPC interface]: :_files' \
+'--rpc-socket=[ZMQ socket name/address for daemon RPC interface]: :_files' \
+'-n+[Blockchain to use]' \
+'--chain=[Blockchain to use]' \
+'*-v[Set verbosity level]' \
+'*--verbose[Set verbosity level]' \
+'-h[Prints help information]' \
+'--help[Prints help information]' \
+'-V[Prints version information]' \
+'--version[Prints version information]' \
+":: :_keyring-cli__xpriv_commands" \
+"*::: :->xpriv" \
+&& ret=0
+case $state in
+    (xpriv)
+        words=($line[1] "${words[@]}")
+        (( CURRENT += 1 ))
+        curcontext="${curcontext%:*:*}:keyring-cli-xpriv-command-$line[1]:"
+        case $line[1] in
+            (export)
+_arguments "${_arguments_options[@]}" \
+'-d+[Data directory path]: :_files -/' \
+'--data-dir=[Data directory path]: :_files -/' \
+'*-T+[Use Tor]: :_hosts' \
+'*--tor-proxy=[Use Tor]: :_hosts' \
+'-x+[ZMQ socket name/address for daemon RPC interface]: :_files' \
+'--rpc-socket=[ZMQ socket name/address for daemon RPC interface]: :_files' \
+'-n+[Blockchain to use]' \
+'--chain=[Blockchain to use]' \
+'*-v[Set verbosity level]' \
+'*--verbose[Set verbosity level]' \
+'-h[Prints help information]' \
+'--help[Prints help information]' \
+'-V[Prints version information]' \
+'--version[Prints version information]' \
+':id:' \
+':file:' \
+&& ret=0
+;;
+        esac
+    ;;
+esac
+;;
+(sign)
+_arguments "${_arguments_options[@]}" \
+'-d+[Data directory path]: :_files -/' \
+'--data-dir=[Data directory path]: :_files -/' \
+'*-T+[Use Tor]: :_hosts' \
+'*--tor-proxy=[Use Tor]: :_hosts' \
+'-x+[ZMQ socket name/address for daemon RPC interface]: :_files' \
+'--rpc-socket=[ZMQ socket name/address for daemon RPC interface]: :_files' \
+'-n+[Blockchain to use]' \
+'--chain=[Blockchain to use]' \
+'*-v[Set verbosity level]' \
+'*--verbose[Set verbosity level]' \
+'-h[Prints help information]' \
+'--help[Prints help information]' \
+'-V[Prints version information]' \
+'--version[Prints version information]' \
+":: :_keyring-cli__sign_commands" \
+"*::: :->sign" \
+&& ret=0
+case $state in
+    (sign)
+        words=($line[1] "${words[@]}")
+        (( CURRENT += 1 ))
+        curcontext="${curcontext%:*:*}:keyring-cli-sign-command-$line[1]:"
+        case $line[1] in
+            (psbt)
+_arguments "${_arguments_options[@]}" \
+'-f+[]: :(json yaml toml bin hex bech32 base64)' \
+'--format=[]: :(json yaml toml bin hex bech32 base64)' \
+'-i+[Input file to read PSBT from. If absent, and no `data` parameter is provided, data are read from STDIN. The file and data must be in a `format` format]' \
+'--in=[Input file to read PSBT from. If absent, and no `data` parameter is provided, data are read from STDIN. The file and data must be in a `format` format]' \
+'-o+[Output file to save transcoded data. If absent, data are written to STDOUT]' \
+'--out=[Output file to save transcoded data. If absent, data are written to STDOUT]' \
+'-d+[Data directory path]: :_files -/' \
+'--data-dir=[Data directory path]: :_files -/' \
+'*-T+[Use Tor]: :_hosts' \
+'*--tor-proxy=[Use Tor]: :_hosts' \
+'-x+[ZMQ socket name/address for daemon RPC interface]: :_files' \
+'--rpc-socket=[ZMQ socket name/address for daemon RPC interface]: :_files' \
+'-n+[Blockchain to use]' \
+'--chain=[Blockchain to use]' \
+'*-v[Set verbosity level]' \
+'*--verbose[Set verbosity level]' \
+'-h[Prints help information]' \
+'--help[Prints help information]' \
+'-V[Prints version information]' \
+'--version[Prints version information]' \
+'::data -- Data string containing PSBT encoded in hexadecimal format (must contain even number of 0-9, A-f characters):' \
+&& ret=0
+;;
+(file)
+_arguments "${_arguments_options[@]}" \
+'-d+[Data directory path]: :_files -/' \
+'--data-dir=[Data directory path]: :_files -/' \
+'*-T+[Use Tor]: :_hosts' \
+'*--tor-proxy=[Use Tor]: :_hosts' \
+'-x+[ZMQ socket name/address for daemon RPC interface]: :_files' \
+'--rpc-socket=[ZMQ socket name/address for daemon RPC interface]: :_files' \
+'-n+[Blockchain to use]' \
+'--chain=[Blockchain to use]' \
+'*-v[Set verbosity level]' \
+'*--verbose[Set verbosity level]' \
+'-h[Prints help information]' \
+'--help[Prints help information]' \
+'-V[Prints version information]' \
+'--version[Prints version information]' \
+&& ret=0
+;;
+(text)
+_arguments "${_arguments_options[@]}" \
+'-d+[Data directory path]: :_files -/' \
+'--data-dir=[Data directory path]: :_files -/' \
+'*-T+[Use Tor]: :_hosts' \
+'*--tor-proxy=[Use Tor]: :_hosts' \
+'-x+[ZMQ socket name/address for daemon RPC interface]: :_files' \
+'--rpc-socket=[ZMQ socket name/address for daemon RPC interface]: :_files' \
+'-n+[Blockchain to use]' \
+'--chain=[Blockchain to use]' \
+'*-v[Set verbosity level]' \
+'*--verbose[Set verbosity level]' \
+'-h[Prints help information]' \
+'--help[Prints help information]' \
+'-V[Prints version information]' \
+'--version[Prints version information]' \
+&& ret=0
+;;
+(key)
+_arguments "${_arguments_options[@]}" \
+'-d+[Data directory path]: :_files -/' \
+'--data-dir=[Data directory path]: :_files -/' \
+'*-T+[Use Tor]: :_hosts' \
+'*--tor-proxy=[Use Tor]: :_hosts' \
+'-x+[ZMQ socket name/address for daemon RPC interface]: :_files' \
+'--rpc-socket=[ZMQ socket name/address for daemon RPC interface]: :_files' \
+'-n+[Blockchain to use]' \
+'--chain=[Blockchain to use]' \
+'*-v[Set verbosity level]' \
+'*--verbose[Set verbosity level]' \
+'-h[Prints help information]' \
+'--help[Prints help information]' \
+'-V[Prints version information]' \
+'--version[Prints version information]' \
+':id -- Key identifier for the signature:' \
+&& ret=0
+;;
+        esac
+    ;;
+esac
+;;
+(help)
+_arguments "${_arguments_options[@]}" \
+'-h[Prints help information]' \
+'--help[Prints help information]' \
+'-V[Prints version information]' \
+'--version[Prints version information]' \
+&& ret=0
+;;
+        esac
+    ;;
+esac
+}
+
+(( $+functions[_keyring-cli_commands] )) ||
+_keyring-cli_commands() {
+    local commands; commands=(
+        "seed:Seed operations: generation, import, export" \
+"xpub:Operations with extended public keys" \
+"xpriv:Operations with extended private keys" \
+"sign:Signs given PSBT bitcoin transaction with the matching keys" \
+"help:Prints this message or the help of the given subcommand(s)" \
+    )
+    _describe -t commands 'keyring-cli commands' commands "$@"
+}
+(( $+functions[_keyring-cli__seed__create_commands] )) ||
+_keyring-cli__seed__create_commands() {
+    local commands; commands=(
+        
+    )
+    _describe -t commands 'keyring-cli seed create commands' commands "$@"
+}
+(( $+functions[_keyring-cli__xpub__derive_commands] )) ||
+_keyring-cli__xpub__derive_commands() {
+    local commands; commands=(
+        
+    )
+    _describe -t commands 'keyring-cli xpub derive commands' commands "$@"
+}
+(( $+functions[_keyring-cli__seed__export_commands] )) ||
+_keyring-cli__seed__export_commands() {
+    local commands; commands=(
+        
+    )
+    _describe -t commands 'keyring-cli seed export commands' commands "$@"
+}
+(( $+functions[_keyring-cli__xpriv__export_commands] )) ||
+_keyring-cli__xpriv__export_commands() {
+    local commands; commands=(
+        
+    )
+    _describe -t commands 'keyring-cli xpriv export commands' commands "$@"
+}
+(( $+functions[_keyring-cli__xpub__export_commands] )) ||
+_keyring-cli__xpub__export_commands() {
+    local commands; commands=(
+        
+    )
+    _describe -t commands 'keyring-cli xpub export commands' commands "$@"
+}
+(( $+functions[_keyring-cli__sign__file_commands] )) ||
+_keyring-cli__sign__file_commands() {
+    local commands; commands=(
+        
+    )
+    _describe -t commands 'keyring-cli sign file commands' commands "$@"
+}
+(( $+functions[_keyring-cli__help_commands] )) ||
+_keyring-cli__help_commands() {
+    local commands; commands=(
+        
+    )
+    _describe -t commands 'keyring-cli help commands' commands "$@"
+}
+(( $+functions[_keyring-cli__seed__import_commands] )) ||
+_keyring-cli__seed__import_commands() {
+    local commands; commands=(
+        
+    )
+    _describe -t commands 'keyring-cli seed import commands' commands "$@"
+}
+(( $+functions[_keyring-cli__sign__key_commands] )) ||
+_keyring-cli__sign__key_commands() {
+    local commands; commands=(
+        
+    )
+    _describe -t commands 'keyring-cli sign key commands' commands "$@"
+}
+(( $+functions[_keyring-cli__xpub__list_commands] )) ||
+_keyring-cli__xpub__list_commands() {
+    local commands; commands=(
+        
+    )
+    _describe -t commands 'keyring-cli xpub list commands' commands "$@"
+}
+(( $+functions[_keyring-cli__sign__psbt_commands] )) ||
+_keyring-cli__sign__psbt_commands() {
+    local commands; commands=(
+        
+    )
+    _describe -t commands 'keyring-cli sign psbt commands' commands "$@"
+}
+(( $+functions[_keyring-cli__seed_commands] )) ||
+_keyring-cli__seed_commands() {
+    local commands; commands=(
+        "create:Creates new keyring with new seed and master key pair" \
+"import:" \
+"export:" \
+    )
+    _describe -t commands 'keyring-cli seed commands' commands "$@"
+}
+(( $+functions[_keyring-cli__sign_commands] )) ||
+_keyring-cli__sign_commands() {
+    local commands; commands=(
+        "psbt:Signs given PSBT" \
+"file:" \
+"text:" \
+"key:" \
+    )
+    _describe -t commands 'keyring-cli sign commands' commands "$@"
+}
+(( $+functions[_keyring-cli__sign__text_commands] )) ||
+_keyring-cli__sign__text_commands() {
+    local commands; commands=(
+        
+    )
+    _describe -t commands 'keyring-cli sign text commands' commands "$@"
+}
+(( $+functions[_keyring-cli__xpriv_commands] )) ||
+_keyring-cli__xpriv_commands() {
+    local commands; commands=(
+        "export:" \
+    )
+    _describe -t commands 'keyring-cli xpriv commands' commands "$@"
+}
+(( $+functions[_keyring-cli__xpub_commands] )) ||
+_keyring-cli__xpub_commands() {
+    local commands; commands=(
+        "list:" \
+"derive:Derives new keys account from a given master extended public key identifier and derived path" \
+"export:" \
+    )
+    _describe -t commands 'keyring-cli xpub commands' commands "$@"
+}
+
+_keyring-cli "$@"

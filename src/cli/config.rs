@@ -11,96 +11,41 @@
 // along with this software.
 // If not, see <https://www.gnu.org/licenses/agpl-3.0-standalone.html>.
 
-use ::clap::Clap;
-use ::core::convert::TryFrom;
+use ::core::convert::{TryFrom, TryInto};
 use ::core::fmt::Display;
 use ::core::str::FromStr;
-use ::num_traits::FromPrimitive;
+use ::serde_with::DisplayFromStr;
 use ::settings::{self, Config as Settings, ConfigError};
-use ::std::env;
 use ::std::fs::File;
 use ::std::io::Write;
 use ::std::process::exit;
 
 use lnpbp::bitcoin::secp256k1;
 use lnpbp::lnp::zmqsocket::ZmqSocketAddr;
+use lnpbp_services::shell::LogLevel;
 
-use super::Command;
-use crate::constants::{
-    KEYRING_CLI_CONFIG, KEYRING_DATA_DIR, KEYRING_ZMQ_ENDPOINT,
-};
+use super::Opts;
 use crate::error::ConfigInitError;
-
-// TODO: Move all shared functionality between daemon and here into `shell` mod
-
-#[derive(Clap, Clone, Debug, Display)]
-#[display(Debug)]
-#[clap(
-    name = "keyring-cli",
-    version = "0.1.0",
-    author = "Dr Maxim Orlovsky <orlovsky@pandoracore.com>",
-    about = "Command-line interface to Keyring daemon"
-)]
-pub struct Opts {
-    /// Initializes config file with the default values
-    #[clap(long)]
-    pub init: bool,
-
-    /// Sets verbosity level; can be used multiple times to increase verbosity
-    #[clap(short, long, global = true, parse(from_occurrences))]
-    pub verbose: u8,
-
-    /// Data directory path
-    #[clap(short, long, env = "KEYRING_DATA_DIR")]
-    pub data_dir: Option<String>,
-
-    /// Path to the configuration file.
-    /// NB: Command-line options override configuration file values.
-    #[clap(short, long, default_value = KEYRING_CLI_CONFIG, env = "KEYRING_CLI_CONFIG")]
-    pub config: String,
-
-    /// RPC endpoint of keyring daemon
-    #[clap(short = 'C', long, env = "KEYRING_ZMQ_ENDPOINT")]
-    pub connect: Option<String>,
-
-    /// Command to execute
-    #[clap(subcommand)]
-    pub command: Command,
-}
+use crate::opts::{KEYRING_DATA_DIR, KEYRING_RPC_SOCKET_NAME};
 
 // We need config structure since not all of the parameters can be specified
 // via environment and command-line arguments. Thus we need a config file and
 // default set of configuration
-#[derive(Clone, PartialEq, Eq, Debug, Display, Serialize, Deserialize)]
-#[display(Debug)]
+#[cfg_attr(feature = "serde", serde_as)]
+#[cfg_attr(
+    feature = "serde",
+    derive(Serialize, Deserialize),
+    serde(crate = "serde_crate")
+)]
+#[derive(Clone, PartialEq, Eq, Debug)]
 pub struct Config {
-    #[serde(with = "serde_with::rust::display_fromstr")]
+    #[serde_as(as = "DisplayFromStr")]
     pub node_key: secp256k1::SecretKey,
     pub data_dir: String,
+    #[serde_as(as = "DisplayFromStr")]
     pub log_level: LogLevel,
-    #[serde(with = "serde_with::rust::display_fromstr")]
+    #[serde_as(as = "DisplayFromStr")]
     pub endpoint: ZmqSocketAddr,
-}
-
-#[derive(
-    Copy,
-    Clone,
-    PartialEq,
-    Eq,
-    Debug,
-    Display,
-    Serialize,
-    Deserialize,
-    FromPrimitive,
-    ToPrimitive,
-)]
-#[display(Debug)]
-pub enum LogLevel {
-    Error = 0,
-    Warn,
-    Info,
-    Debug,
-    Trace,
 }
 
 impl TryFrom<Opts> for Config {
@@ -108,18 +53,13 @@ impl TryFrom<Opts> for Config {
 
     fn try_from(opts: Opts) -> Result<Self, Self::Error> {
         let log_level =
-            LogLevel::from_u8(opts.verbose).unwrap_or(LogLevel::Trace);
-
-        setup_verbose(log_level);
-        debug!("Verbosity level set to {}", opts.verbose);
+            LogLevel::from_verbosity_flag_count(opts.shared.verbose);
 
         let mut proto = Self::default();
-        if let Some(data_dir) = opts.data_dir {
-            proto.data_dir = data_dir
-        }
+        proto.data_dir = opts.shared.data_dir.to_string_lossy().to_string();
 
         let conf_file: String = proto.parse_param(opts.config);
-        let mut me = if !opts.init {
+        let mut me = if !opts.shared.init {
             debug!("Reading config file {}", conf_file);
             let mut s = Settings::new();
             match s.merge(settings::File::with_name(&conf_file)) {
@@ -140,19 +80,19 @@ impl TryFrom<Opts> for Config {
 
             s.try_into()?
         } else {
-            Self::default()
+            Config::default()
         };
 
         trace!("Applying command-line arguments & environment");
         me.data_dir = proto.data_dir;
-        if opts.verbose > 0 {
-            me.log_level = log_level
-        }
-        if let Some(connect) = opts.connect {
-            me.endpoint = me.parse_param(connect)
-        }
+        me.log_level = log_level;
+        me.endpoint = opts
+            .shared
+            .rpc_socket
+            .try_into()
+            .expect("Only ZMQ RPC is supported");
 
-        if opts.init {
+        if opts.shared.init {
             if let Err(err) = init_config(&conf_file, me) {
                 error!("Error during config file creation: {}", err);
                 eprintln!(
@@ -164,21 +104,18 @@ impl TryFrom<Opts> for Config {
             exit(0);
         }
 
-        debug!("Configuration init succeeded");
+        debug!("Configuration successfully loaded");
         Ok(me)
     }
 }
 
 impl Config {
-    pub fn apply(&self) {}
-
     pub fn parse_param<T>(&self, param: String) -> T
     where
         T: FromStr,
         T::Err: Display,
     {
         param
-            .replace("{data_dir}", &self.data_dir)
             .replace("{node_id}", &self.node_id().to_string())
             .parse()
             .unwrap_or_else(|err| {
@@ -202,27 +139,11 @@ impl Default for Config {
                 .parse()
                 .expect("Error in KEYRING_DATA_DIR constant value"),
             log_level: LogLevel::Warn,
-            endpoint: KEYRING_ZMQ_ENDPOINT
+            endpoint: KEYRING_RPC_SOCKET_NAME
                 .parse()
-                .expect("Broken KEYRING_ZMQ_ENDPOINT value"),
+                .expect("Broken KEYRING_RPC_SOCKET_NAME value"),
         }
     }
-}
-
-fn setup_verbose(verbose: LogLevel) {
-    if env::var("RUST_LOG").is_err() {
-        env::set_var(
-            "RUST_LOG",
-            match verbose {
-                LogLevel::Error => "error",
-                LogLevel::Warn => "warn",
-                LogLevel::Info => "info",
-                LogLevel::Debug => "debug",
-                LogLevel::Trace => "trace",
-            },
-        );
-    }
-    env_logger::init();
 }
 
 fn init_config(conf_file: &str, config: Config) -> Result<(), ConfigInitError> {

@@ -19,17 +19,18 @@ use lnpbp::lnp::{
 };
 
 use super::Config;
-use crate::api::{self, Reply, Request};
 use crate::error::BootstrapError;
+use crate::rpc::{self, Reply, Request};
 
-pub struct Runtime {
+#[repr(C)]
+pub struct Client {
     config: Config,
     session_rpc: session::Raw<PlainTranscoder, zmqsocket::Connection>,
     unmarshaller: Unmarshaller<Reply>,
 }
 
-impl Runtime {
-    pub async fn init(config: Config) -> Result<Self, BootstrapError> {
+impl Client {
+    pub fn with(config: Config) -> Result<Self, BootstrapError> {
         debug!("Initializing runtime");
         trace!("Connecting to keyring daemon at {}", config.endpoint);
         let session_rpc = session::Raw::with_zmq_unencrypted(
@@ -48,7 +49,7 @@ impl Runtime {
     pub fn request(
         &mut self,
         mut request: Request,
-    ) -> Result<Reply, api::Error> {
+    ) -> Result<Reply, rpc::Error> {
         // Inserting decryption key if needed
         if let Some(decryption_key) = match request {
             Request::ExportXpriv(ref mut req) => Some(&mut req.decryption_key),

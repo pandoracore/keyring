@@ -12,8 +12,6 @@
 // If not, see <https://www.gnu.org/licenses/agpl-3.0-standalone.html>.
 
 use std::any::Any;
-use std::sync::Arc;
-use tokio::sync::Mutex;
 
 use lnpbp::lnp::presentation::Encode;
 use lnpbp::lnp::zmqsocket::{self, ZmqType};
@@ -21,12 +19,20 @@ use lnpbp::lnp::{
     session, CreateUnmarshaller, PlainTranscoder, Session, Unmarshall,
     Unmarshaller,
 };
+use lnpbp_services::node::TryService;
 
 use super::Config;
-use crate::api::{message, Reply, Request};
 use crate::error::{BootstrapError, RuntimeError};
-use crate::TryService;
+use crate::rpc::{message, Reply, Request};
 use crate::Vault;
+
+pub fn run(config: Config) -> Result<(), BootstrapError> {
+    let runtime = Runtime::init(config)?;
+
+    runtime.run_or_panic("keyringd");
+
+    Ok(())
+}
 
 pub struct Runtime {
     /// Original configuration object
@@ -36,21 +42,21 @@ pub struct Runtime {
     session_rpc: session::Raw<PlainTranscoder, zmqsocket::Connection>,
 
     /// Secure key vault
-    vault: Arc<Mutex<Vault>>,
+    vault: Vault,
 
     /// Unmarshaller instance used for parsing RPC request
     unmarshaller: Unmarshaller<Request>,
 }
 
 impl Runtime {
-    pub async fn init(config: Config) -> Result<Self, BootstrapError> {
+    pub fn init(config: Config) -> Result<Self, BootstrapError> {
         debug!("Initializing vault {}", config.vault);
         let vault = Vault::with(&config.vault)?;
 
-        debug!("Opening ZMQ socket {}", config.zmq_endpoint);
+        debug!("Opening ZMQ socket {}", config.endpoint);
         let session_rpc = session::Raw::with_zmq_unencrypted(
             ZmqType::Rep,
-            &config.zmq_endpoint,
+            &config.endpoint,
             None,
             None,
         )?;
@@ -58,19 +64,18 @@ impl Runtime {
         Ok(Self {
             config,
             session_rpc,
-            vault: Arc::new(Mutex::new(vault)),
+            vault,
             unmarshaller: Request::create_unmarshaller(),
         })
     }
 }
 
-#[async_trait]
 impl TryService for Runtime {
     type ErrorType = RuntimeError;
 
-    async fn try_run_loop(mut self) -> Result<(), Self::ErrorType> {
+    fn try_run_loop(mut self) -> Result<(), Self::ErrorType> {
         loop {
-            match self.run().await {
+            match self.run() {
                 Ok(_) => debug!("API request processing complete"),
                 Err(err) => {
                     error!("Error processing API request: {}", err);
@@ -82,10 +87,10 @@ impl TryService for Runtime {
 }
 
 impl Runtime {
-    async fn run(&mut self) -> Result<(), RuntimeError> {
+    fn run(&mut self) -> Result<(), RuntimeError> {
         trace!("Awaiting for ZMQ RPC requests...");
         let raw = self.session_rpc.recv_raw_message()?;
-        let reply = self.rpc_process(raw).await.unwrap_or_else(|err| err);
+        let reply = self.rpc_process(raw).unwrap_or_else(|err| err);
         trace!("Preparing ZMQ RPC reply: {:?}", reply);
         let data = reply.encode()?;
         trace!(
@@ -96,28 +101,25 @@ impl Runtime {
         Ok(())
     }
 
-    async fn rpc_process(&mut self, raw: Vec<u8>) -> Result<Reply, Reply> {
+    fn rpc_process(&mut self, raw: Vec<u8>) -> Result<Reply, Reply> {
         trace!("Got {} bytes over ZMQ RPC", raw.len());
         let message = (&*self.unmarshaller.unmarshall(&raw)?).clone();
         debug!("Received ZMQ RPC request: {:?}", message.type_id());
         match message {
-            Request::Seed(seed) => self.rpc_seed_create(seed).await,
-            Request::List => self.rpc_list().await,
-            Request::Derive(derive) => self.rpc_derive(derive).await,
-            Request::ExportXpub(export) => self.rpc_export_xpub(export).await,
-            Request::ExportXpriv(export) => self.rpc_export_xpriv(export).await,
-            Request::SignPsbt(sign) => self.rpc_sign_psbt(sign).await,
-            Request::SignKey(sign) => self.rpc_sign_key(sign).await,
-            Request::SignData(sign) => self.rpc_sign_data(sign).await,
+            Request::Seed(seed) => self.rpc_seed_create(seed),
+            Request::List => self.rpc_list(),
+            Request::Derive(derive) => self.rpc_derive(derive),
+            Request::ExportXpub(export) => self.rpc_export_xpub(export),
+            Request::ExportXpriv(export) => self.rpc_export_xpriv(export),
+            Request::SignPsbt(sign) => self.rpc_sign_psbt(sign),
+            Request::SignKey(sign) => self.rpc_sign_key(sign),
+            Request::SignData(sign) => self.rpc_sign_data(sign),
         }
     }
 
-    async fn rpc_seed_create(
-        &mut self,
-        seed: message::Seed,
-    ) -> Result<Reply, Reply> {
+    fn rpc_seed_create(&mut self, seed: message::Seed) -> Result<Reply, Reply> {
         trace!("Awaiting for the vault lock");
-        self.vault.lock().await.seed(
+        self.vault.seed(
             seed.name,
             seed.description,
             &seed.chain,
@@ -128,19 +130,19 @@ impl Runtime {
         Ok(Reply::Success)
     }
 
-    async fn rpc_list(&mut self) -> Result<Reply, Reply> {
+    fn rpc_list(&mut self) -> Result<Reply, Reply> {
         trace!("Awaiting for the vault lock");
-        let accounts = self.vault.lock().await.list()?;
+        let accounts = self.vault.list()?;
         trace!("Vault lock released");
         Ok(Reply::Keylist(accounts))
     }
 
-    async fn rpc_derive(
+    fn rpc_derive(
         &mut self,
         mut derive: message::Derive,
     ) -> Result<Reply, Reply> {
         trace!("Awaiting for the vault lock");
-        let account = self.vault.lock().await.derive(
+        let account = self.vault.derive(
             derive.from,
             derive.path,
             derive.name,
@@ -152,65 +154,60 @@ impl Runtime {
         Ok(Reply::AccountInfo(account))
     }
 
-    async fn rpc_export_xpub(
+    fn rpc_export_xpub(
         &mut self,
         export: message::Export,
     ) -> Result<Reply, Reply> {
         trace!("Awaiting for the vault lock");
-        let key = self.vault.lock().await.xpub(export.key_id)?;
+        let key = self.vault.xpub(export.key_id)?;
         trace!("Vault lock released");
         Ok(Reply::XPub(key))
     }
 
-    async fn rpc_export_xpriv(
+    fn rpc_export_xpriv(
         &mut self,
         mut export: message::Export,
     ) -> Result<Reply, Reply> {
         trace!("Awaiting for the vault lock");
         let key = self
             .vault
-            .lock()
-            .await
             .xpriv(export.key_id, &mut export.decryption_key)?;
         trace!("Vault lock released");
         Ok(Reply::XPriv(key))
     }
 
-    async fn rpc_sign_psbt(
+    fn rpc_sign_psbt(
         &mut self,
         mut message: message::SignPsbt,
     ) -> Result<Reply, Reply> {
         trace!("Awaiting for the vault lock");
         let psbt = self
             .vault
-            .lock()
-            .await
             .sign_psbt(message.psbt, &mut message.decryption_key)?;
         trace!("Vault lock released");
         Ok(Reply::Psbt(psbt))
     }
 
-    async fn rpc_sign_key(
+    fn rpc_sign_key(
         &mut self,
         mut message: message::SignKey,
     ) -> Result<Reply, Reply> {
         trace!("Awaiting for the vault lock");
-        let vault = self.vault.lock().await;
         trace!("Lock acquired");
-        let signature =
-            vault.sign_key(message.key_id, &mut message.decryption_key)?;
+        let signature = self
+            .vault
+            .sign_key(message.key_id, &mut message.decryption_key)?;
         trace!("Vault lock released");
         Ok(Reply::Signature(signature))
     }
 
-    async fn rpc_sign_data(
+    fn rpc_sign_data(
         &mut self,
         mut message: message::SignData,
     ) -> Result<Reply, Reply> {
         trace!("Awaiting for the vault lock");
-        let vault = self.vault.lock().await;
         trace!("Lock acquired");
-        let signature = vault.sign_data(
+        let signature = self.vault.sign_data(
             message.key_id,
             &message.data,
             &mut message.decryption_key,

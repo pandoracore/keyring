@@ -12,7 +12,9 @@
 // If not, see <https://www.gnu.org/licenses/agpl-3.0-standalone.html>.
 
 mod config;
+pub(crate) mod opts;
 mod runtime;
 
-pub use config::{Config, Opts};
-pub use runtime::Runtime;
+pub use config::Config;
+pub use opts::{FileFormat, Opts};
+pub use runtime::{run, Runtime};

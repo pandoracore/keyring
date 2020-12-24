@@ -13,35 +13,44 @@
 
 //! Command-line interface to the keyring daemon
 
-#![feature(never_type)]
+#![recursion_limit = "256"]
+// Coding conventions
+#![deny(
+    non_upper_case_globals,
+    non_camel_case_types,
+    non_snake_case,
+    unused_mut,
+    unused_imports,
+    dead_code,
+    //missing_docs
+)]
 
 #[macro_use]
 extern crate log;
 
 use clap::Clap;
-use log::LevelFilter;
+use lnpbp_services::shell::Exec;
 use std::convert::TryInto;
 
-use keyring::cli::{Config, Opts, Runtime};
-use keyring::error::BootstrapError;
-use keyring::Exec;
+use keyring::cli::{Client, Config, Opts};
 
-#[tokio::main]
-async fn main() -> Result<(), BootstrapError> {
-    log::set_max_level(LevelFilter::Trace);
+fn main() {
+    println!("keyring-cli: command-line tool for using keyringd service");
+
+    let mut opts = Opts::parse();
+    trace!("Command-line arguments: {:?}", &opts);
+    opts.process();
+    trace!("Processed arguments: {:?}", &opts);
+
+    let config: Config = opts.clone().try_into().expect("Wrong configuration");
+    trace!("Tool configuration: {:?}", &config);
+    debug!("RPC socket {}", &config.endpoint);
+
     debug!("Command-line interface to the keyring daemon");
-
-    let opts: Opts = Opts::parse();
-    let config: Config = opts.clone().try_into()?;
-    config.apply();
-
-    debug!("Command-line interface to the keyring daemon");
-    let mut runtime = Runtime::init(config).await?;
+    let mut client = Client::with(config).expect("Error initializing client");
 
     trace!("Executing command: {:?}", opts.command);
     opts.command
-        .exec(&mut runtime)
-        .unwrap_or_else(|err| error!("{}", err));
-
-    Ok(())
+        .exec(&mut client)
+        .unwrap_or_else(|err| eprintln!("{}", err));
 }

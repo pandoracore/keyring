@@ -22,6 +22,7 @@ use ::std::path::Path;
 use lnpbp::strict_encoding::{StrictDecode, StrictEncode};
 
 use super::{driver, Driver, Keyring};
+use crate::daemon::FileFormat;
 use crate::error::BootstrapError;
 
 #[derive(Debug, Display)]
@@ -31,23 +32,11 @@ pub struct FileDriver {
     config: Config,
 }
 
-#[derive(Clone, PartialEq, Eq, Hash, Debug, Display, Serialize, Deserialize)]
-#[display(Debug)]
+#[derive(Clone, PartialEq, Eq, Hash, Debug, Serialize, Deserialize)]
+#[serde(crate = "serde_crate")]
 pub struct Config {
     pub location: String,
     pub format: FileFormat,
-}
-
-#[derive(
-    Copy, Clone, PartialEq, Eq, Hash, Debug, Display, Serialize, Deserialize,
-)]
-#[display(Debug)]
-#[non_exhaustive]
-pub enum FileFormat {
-    StrictEncoded,
-    Yaml,
-    Toml,
-    Json,
 }
 
 impl Driver for FileDriver {
@@ -60,7 +49,7 @@ impl Driver for FileDriver {
             &config.location
         );
         let exists = Path::new(&config.location).exists();
-        let fd = fs::File::with_options()
+        let fd = fs::OpenOptions::new()
             .read(true)
             .write(true)
             .create(!exists)
@@ -87,12 +76,15 @@ impl Driver for FileDriver {
             FileFormat::StrictEncoded => {
                 Vec::<Keyring>::strict_decode(&mut self.fd)?
             }
+            #[cfg(feature = "serde_yaml")]
             FileFormat::Yaml => serde_yaml::from_reader(&mut self.fd)?,
+            #[cfg(feature = "toml")]
             FileFormat::Toml => {
                 let mut data: Vec<u8> = vec![];
                 self.fd.read_to_end(&mut data)?;
                 toml::from_slice(&data)?
             }
+            #[cfg(feature = "serde_json")]
             FileFormat::Json => serde_json::from_reader(&mut self.fd)?,
         };
         trace!("Vault loaded: {:?}", accounts);
@@ -111,13 +103,16 @@ impl Driver for FileDriver {
             FileFormat::StrictEncoded => {
                 accounts.strict_encode(&mut self.fd)?;
             }
+            #[cfg(feature = "serde_yaml")]
             FileFormat::Yaml => {
                 serde_yaml::to_writer(&mut self.fd, accounts)?;
             }
+            #[cfg(feature = "toml")]
             FileFormat::Toml => {
                 let data = toml::to_vec(accounts)?;
                 self.fd.write_all(&data)?;
             }
+            #[cfg(feature = "serde_json")]
             FileFormat::Json => {
                 serde_json::to_writer(&mut self.fd, accounts)?;
             }

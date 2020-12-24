@@ -11,32 +11,51 @@
 // along with this software.
 // If not, see <https://www.gnu.org/licenses/agpl-3.0-standalone.html>.
 
-//! Main daemon file
+#![recursion_limit = "256"]
+// Coding conventions
+#![deny(
+    non_upper_case_globals,
+    non_camel_case_types,
+    non_snake_case,
+    unused_mut,
+    unused_imports,
+    dead_code,
+    missing_docs
+)]
 
-#![feature(never_type)]
+//! Main executable for keyring daemon
 
 #[macro_use]
 extern crate log;
 
 use clap::Clap;
-use core::convert::TryInto;
-use log::LevelFilter;
+use std::convert::TryInto;
 
-use keyring::daemon::{Config, Opts, Runtime};
-use keyring::error::BootstrapError;
-use keyring::TryService;
+use keyring::daemon::{self, Config, Opts};
 
-#[tokio::main]
-async fn main() -> Result<!, BootstrapError> {
-    log::set_max_level(LevelFilter::Trace);
-    info!("keyringd: private/public key managing service");
+fn main() {
+    println!("keyringd: key management daemon");
 
-    let opts: Opts = Opts::parse();
-    let config: Config = opts.clone().try_into()?;
-    config.apply();
+    let mut opts = Opts::parse();
+    trace!("Command-line arguments: {:?}", &opts);
+    opts.process();
+    trace!("Processed arguments: {:?}", &opts);
 
-    let runtime = Runtime::init(config).await?;
-    runtime.run_or_panic("keyringd runtime").await;
+    let config: Config = opts.clone().try_into().expect("Wrong configuration");
+    trace!("Daemon configuration: {:?}", &config);
+    debug!("RPC socket {}", &config.endpoint);
+
+    /*
+    use self::internal::ResultExt;
+    let (config_from_file, _) =
+        internal::Config::custom_args_and_optional_files(std::iter::empty::<
+            &str,
+        >())
+        .unwrap_or_exit();
+     */
+
+    debug!("Starting runtime ...");
+    daemon::run(config).expect("Error running keyringd runtime");
 
     unreachable!()
 }

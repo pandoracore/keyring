@@ -11,178 +11,28 @@
 // along with this software.
 // If not, see <https://www.gnu.org/licenses/agpl-3.0-standalone.html>.
 
-use std::path::PathBuf;
-
-use lnpbp::bitcoin::hashes::hex::{FromHex, ToHex};
+use lnpbp::bitcoin::hashes::hex::ToHex;
 use lnpbp::bitcoin::secp256k1;
 use lnpbp::bitcoin::util::bip32::DerivationPath;
 use lnpbp::bitcoin::XpubIdentifier;
 use lnpbp::bp::bip32::KeyApplication;
 use lnpbp::bp::Chain;
 use lnpbp::strict_encoding::strict_encode;
+use lnpbp_services::format;
+use lnpbp_services::shell::Exec;
 
-use super::format;
-use super::Runtime;
-use crate::api;
-use crate::api::Reply;
-use crate::Exec;
-
-// Command-line commands:
-//
-//     keyring-cli seed create
-//     keyring-cli seed import <fingerprint>
-//     keyring-cli seed export <fingerprint> <file>
-//
-//     keyring-cli xpub list [<fingerprint>]
-//     keyring-cli xpub derive <fingerprint> <derivation_path>
-//     keyring-cli xpub export <fingerprint> <file>
-//
-//     keyring-cli xprivkey export <fingerprint> <file>
-//
-//     keyring-cli sign <in_file> <out_file>
-//
-#[derive(Clap, Clone, Debug, Display)]
-#[display(Debug)]
-pub enum Command {
-    /// Seed operations: generation, import, export
-    Seed {
-        /// Subcommand specifying particular operation
-        #[clap(subcommand)]
-        subcommand: SeedCommand,
-    },
-
-    /// Operations with extended public keys
-    Xpub {
-        /// Subcommand specifying particular operation
-        #[clap(subcommand)]
-        subcommand: XPubkeyCommand,
-    },
-
-    /// Operations with extended private keys
-    Xpriv {
-        /// Subcommand specifying particular operation
-        #[clap(subcommand)]
-        subcommand: XPrivkeyCommand,
-    },
-
-    /// Signs given PSBT bitcoin transaction with the matching keys
-    Sign {
-        /// Subcommand specifying particular type of signatyre
-        #[clap(subcommand)]
-        subcommand: SignCommand,
-    },
-}
-
-#[derive(Clap, Clone, Debug, Display)]
-#[display(Debug)]
-pub enum SeedCommand {
-    /// Creates new keyring with new seed and master key pair
-    Create {
-        /// Target chain for the key
-        chain: Chain,
-
-        /// Application scope. Possible values are:
-        /// pkh, sh, wpkh, wsh, wpkh-sh, wsh-sh
-        application: KeyApplication,
-
-        /// Name for newly generated account with a seed phrase
-        name: String,
-
-        /// More details information about the new account
-        details: Option<String>,
-    },
-
-    Import {
-        #[clap(parse(try_from_str = FromHex::from_hex))]
-        id: XpubIdentifier,
-    },
-
-    Export {
-        #[clap(parse(try_from_str = FromHex::from_hex))]
-        id: XpubIdentifier,
-
-        file: String,
-    },
-}
-
-#[derive(Clap, Clone, Debug, Display)]
-#[display(Debug)]
-pub enum XPubkeyCommand {
-    List {
-        #[clap(short, long, arg_enum, default_value = "yaml")]
-        format: format::StructuredData,
-    },
-
-    /// Derives new keys account from a given master extended public key
-    /// identifier and derived path.
-    Derive {
-        #[clap(parse(try_from_str = FromHex::from_hex))]
-        id: XpubIdentifier,
-
-        path: DerivationPath,
-    },
-
-    Export {
-        #[clap(parse(try_from_str = FromHex::from_hex))]
-        id: XpubIdentifier,
-
-        file: String,
-    },
-}
-
-#[derive(Clap, Clone, Debug, Display)]
-#[display(Debug)]
-pub enum XPrivkeyCommand {
-    Export {
-        #[clap(parse(try_from_str = FromHex::from_hex))]
-        id: XpubIdentifier,
-
-        file: String,
-    },
-}
-
-#[derive(Clap, Clone, Debug, Display)]
-#[display(Debug)]
-pub enum SignCommand {
-    /// Signs given PSBT
-    Psbt {
-        #[clap(short = 'f', long = "format", arg_enum, default_value)]
-        format: format::Psbt,
-
-        /// Input file to read PSBT from. If absent, and no `data` parameter
-        /// is provided, data are read from STDIN. The file and data must be in
-        /// a `format` format.
-        #[clap(short, long = "in")]
-        in_file: Option<PathBuf>,
-
-        /// Data string containing PSBT encoded in hexadecimal format (must
-        /// contain even number of 0-9, A-f characters)
-        #[clap()]
-        data: Option<String>,
-
-        /// Output file to save transcoded data. If absent, data are written to
-        /// STDOUT
-        #[clap(short, long = "out")]
-        out_file: Option<PathBuf>,
-    },
-
-    File {},
-
-    Text {},
-
-    Key {
-        /// Key identifier for the signature
-        #[clap(parse(try_from_str = FromHex::from_hex))]
-        id: XpubIdentifier,
-    },
-}
+use super::Client;
+use super::{
+    Command, SeedCommand, SignCommand, XPrivkeyCommand, XPubkeyCommand,
+};
+use crate::rpc;
 
 impl Exec for Command {
-    type Runtime = Runtime;
-    type Error = api::Error;
+    type Runtime = Client;
+    type Error = rpc::Error;
 
     #[inline]
-    fn exec(&self, runtime: &mut Runtime) -> Result<(), Self::Error> {
+    fn exec(&self, runtime: &mut Client) -> Result<(), Self::Error> {
         match self {
             Command::Seed { subcommand } => subcommand.exec(runtime),
             Command::Xpub { subcommand } => subcommand.exec(runtime),
@@ -193,11 +43,11 @@ impl Exec for Command {
 }
 
 impl Exec for SeedCommand {
-    type Runtime = Runtime;
-    type Error = api::Error;
+    type Runtime = Client;
+    type Error = rpc::Error;
 
     #[inline]
-    fn exec(&self, runtime: &mut Runtime) -> Result<(), Self::Error> {
+    fn exec(&self, runtime: &mut Client) -> Result<(), Self::Error> {
         match self {
             SeedCommand::Create {
                 name,
@@ -220,11 +70,11 @@ impl Exec for SeedCommand {
 }
 
 impl Exec for XPubkeyCommand {
-    type Runtime = Runtime;
-    type Error = api::Error;
+    type Runtime = Client;
+    type Error = rpc::Error;
 
     #[inline]
-    fn exec(&self, runtime: &mut Runtime) -> Result<(), Self::Error> {
+    fn exec(&self, runtime: &mut Client) -> Result<(), Self::Error> {
         match self {
             XPubkeyCommand::List { format } => self.exec_list(runtime, format),
             XPubkeyCommand::Derive { id, path } => {
@@ -238,11 +88,11 @@ impl Exec for XPubkeyCommand {
 }
 
 impl Exec for XPrivkeyCommand {
-    type Runtime = Runtime;
-    type Error = api::Error;
+    type Runtime = Client;
+    type Error = rpc::Error;
 
     #[inline]
-    fn exec(&self, runtime: &mut Runtime) -> Result<(), Self::Error> {
+    fn exec(&self, runtime: &mut Client) -> Result<(), Self::Error> {
         match self {
             XPrivkeyCommand::Export { id, file } => {
                 self.exec_export(runtime, id, file)
@@ -252,11 +102,11 @@ impl Exec for XPrivkeyCommand {
 }
 
 impl Exec for SignCommand {
-    type Runtime = Runtime;
-    type Error = api::Error;
+    type Runtime = Client;
+    type Error = rpc::Error;
 
     #[inline]
-    fn exec(&self, runtime: &mut Runtime) -> Result<(), Self::Error> {
+    fn exec(&self, runtime: &mut Client) -> Result<(), Self::Error> {
         match self {
             SignCommand::Psbt { .. } => {
                 unimplemented!()
@@ -272,15 +122,15 @@ impl Exec for SignCommand {
 impl SeedCommand {
     pub fn exec_create(
         &self,
-        runtime: &mut Runtime,
+        runtime: &mut Client,
         name: String,
         description: Option<String>,
         chain: Chain,
         application: KeyApplication,
-    ) -> Result<(), api::Error> {
+    ) -> Result<(), rpc::Error> {
         debug!("Creating new seed");
         let reply =
-            runtime.request(api::Request::Seed(api::message::Seed {
+            runtime.request(rpc::Request::Seed(rpc::message::Seed {
                 auth_code: 0,
                 name,
                 chain,
@@ -288,29 +138,31 @@ impl SeedCommand {
                 description,
             }))?;
         match reply {
-            Reply::Success => {
+            rpc::Reply::Success => {
                 info!("New seed created");
                 Ok(())
             }
-            Reply::Failure(failure) => Err(api::Error::ServerFailure(failure)),
-            _ => Err(api::Error::UnexpectedServerResponse),
+            rpc::Reply::Failure(failure) => {
+                Err(rpc::Error::ServerFailure(failure))
+            }
+            _ => Err(rpc::Error::UnexpectedServerResponse),
         }
     }
 
     pub fn exec_import(
         &self,
-        _runtime: &mut Runtime,
+        _runtime: &mut Client,
         _id: &XpubIdentifier,
-    ) -> Result<(), api::Error> {
+    ) -> Result<(), rpc::Error> {
         unimplemented!()
     }
 
     pub fn exec_export(
         &self,
-        _runtime: &mut Runtime,
+        _runtime: &mut Client,
         _id: &XpubIdentifier,
         _file: &str,
-    ) -> Result<(), api::Error> {
+    ) -> Result<(), rpc::Error> {
         unimplemented!()
     }
 }
@@ -318,29 +170,32 @@ impl SeedCommand {
 impl XPubkeyCommand {
     pub fn exec_list(
         &self,
-        runtime: &mut Runtime,
+        runtime: &mut Client,
         format: &format::StructuredData,
-    ) -> Result<(), api::Error> {
+    ) -> Result<(), rpc::Error> {
         const ERR: &'static str = "Error formatting data";
 
         debug!("Listing known accounts/extended public keys");
-        let reply = runtime.request(api::Request::List)?;
+        let reply = runtime.request(rpc::Request::List)?;
         match reply {
-            Reply::Keylist(accounts) => {
+            rpc::Reply::Keylist(accounts) => {
                 let result = match format {
+                    #[cfg(feature = "serde_json")]
                     format::StructuredData::Json => {
                         serde_json::to_string(&accounts).expect(ERR)
                     }
+                    #[cfg(feature = "serde_yaml")]
                     format::StructuredData::Yaml => {
                         serde_yaml::to_string(&accounts).expect(ERR)
                     }
+                    #[cfg(feature = "toml")]
                     format::StructuredData::Toml => {
                         toml::to_string(&accounts).expect(ERR)
                     }
-                    format::StructuredData::StrictHex => {
+                    format::StructuredData::Hex => {
                         strict_encode(&accounts).expect(ERR).to_hex()
                     }
-                    format::StructuredData::StrictBase64 => {
+                    format::StructuredData::Base64 => {
                         base64::encode(strict_encode(&accounts).expect(ERR))
                     }
                     _ => unimplemented!(),
@@ -348,28 +203,28 @@ impl XPubkeyCommand {
                 println!("{}", result);
                 Ok(())
             }
-            Reply::Failure(failure) => {
-                Err(api::Error::ServerFailure(failure.clone()))
+            rpc::Reply::Failure(failure) => {
+                Err(rpc::Error::ServerFailure(failure.clone()))
             }
-            _ => Err(api::Error::UnexpectedServerResponse),
+            _ => Err(rpc::Error::UnexpectedServerResponse),
         }
     }
 
     pub fn exec_derive(
         &self,
-        _runtime: &mut Runtime,
+        _runtime: &mut Client,
         _id: &XpubIdentifier,
         _path: &DerivationPath,
-    ) -> Result<(), api::Error> {
+    ) -> Result<(), rpc::Error> {
         unimplemented!()
     }
 
     pub fn exec_export(
         &self,
-        _runtime: &mut Runtime,
+        _runtime: &mut Client,
         _id: &XpubIdentifier,
         _file: &str,
-    ) -> Result<(), api::Error> {
+    ) -> Result<(), rpc::Error> {
         unimplemented!()
     }
 }
@@ -377,10 +232,10 @@ impl XPubkeyCommand {
 impl XPrivkeyCommand {
     pub fn exec_export(
         &self,
-        _runtime: &mut Runtime,
+        _runtime: &mut Client,
         _id: &XpubIdentifier,
         _file: &str,
-    ) -> Result<(), api::Error> {
+    ) -> Result<(), rpc::Error> {
         unimplemented!()
     }
 }
@@ -388,23 +243,25 @@ impl XPrivkeyCommand {
 impl SignCommand {
     pub fn exec_sign_key(
         &self,
-        runtime: &mut Runtime,
+        runtime: &mut Client,
         id: XpubIdentifier,
-    ) -> Result<(), api::Error> {
+    ) -> Result<(), rpc::Error> {
         debug!("Signing public key with private key");
         let reply =
-            runtime.request(api::Request::SignKey(api::message::SignKey {
+            runtime.request(rpc::Request::SignKey(rpc::message::SignKey {
                 key_id: id,
                 decryption_key: secp256k1::key::ONE_KEY,
                 auth_code: 0,
             }))?;
         match reply {
-            Reply::Signature(signature) => {
+            rpc::Reply::Signature(signature) => {
                 info!("New signature created: {}", signature);
                 Ok(())
             }
-            Reply::Failure(failure) => Err(api::Error::ServerFailure(failure)),
-            _ => Err(api::Error::UnexpectedServerResponse),
+            rpc::Reply::Failure(failure) => {
+                Err(rpc::Error::ServerFailure(failure))
+            }
+            _ => Err(rpc::Error::UnexpectedServerResponse),
         }
     }
 }

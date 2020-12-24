@@ -13,30 +13,37 @@
 
 #[derive(Clone, Debug, Display, LnpApi)]
 #[lnp_api(encoding = "strict")]
-#[display(Debug)]
 #[non_exhaustive]
 pub enum Request {
     #[lnp_api(type = 0x0010)]
+    #[display("list()")]
     List,
 
     #[lnp_api(type = 0x0020)]
-    Seed(crate::api::message::Seed),
+    #[display("seed({0})")]
+    Seed(crate::rpc::message::Seed),
 
     #[lnp_api(type = 0x0030)]
-    ExportXpub(crate::api::message::Export),
+    #[display("exporT_xpub({0})")]
+    ExportXpub(crate::rpc::message::Export),
 
     #[lnp_api(type = 0x0032)]
-    ExportXpriv(crate::api::message::Export),
+    #[display("export_xpriv({0})")]
+    ExportXpriv(crate::rpc::message::Export),
 
     #[lnp_api(type = 0x0040)]
-    Derive(crate::api::message::Derive),
+    #[display("derive({0})")]
+    Derive(crate::rpc::message::Derive),
 
     #[lnp_api(type = 0x0050)]
-    SignPsbt(crate::api::message::SignPsbt),
+    #[display("sign_psbt({0})")]
+    SignPsbt(crate::rpc::message::SignPsbt),
 
     #[lnp_api(type = 0x0052)]
-    SignKey(crate::api::message::SignKey),
+    #[display("sign_key({0})")]
+    SignKey(crate::rpc::message::SignKey),
 
     #[lnp_api(type = 0x0054)]
-    SignData(crate::api::message::SignData),
+    #[display("sign_data({0})")]
+    SignData(crate::rpc::message::SignData),
 }
