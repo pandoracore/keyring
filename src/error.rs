@@ -12,15 +12,15 @@
 // If not, see <https://www.gnu.org/licenses/agpl-3.0-standalone.html>.
 
 use ::std::io;
-#[cfg(feature = "shell")]
+#[cfg(any(feature = "shell", feature = "embedded"))]
 use settings::ConfigError;
 
 use lnpbp::lnp;
 
-#[cfg(feature = "server")]
+#[cfg(any(feature = "server", feature = "embedded"))]
 use crate::vault;
 
-#[cfg(feature = "shell")]
+#[cfg(any(feature = "shell", feature = "embedded"))]
 #[derive(Debug, Display, Error, From)]
 #[display(Debug)]
 pub enum ConfigInitError {
@@ -34,7 +34,7 @@ pub enum ConfigInitError {
 #[derive(Debug, Display, Error, From)]
 #[display(Debug)]
 pub enum BootstrapError {
-    #[cfg(feature = "shell")]
+    #[cfg(any(feature = "shell", feature = "server", feature = "embedded"))]
     #[from]
     ConfigError(ConfigError),
 
@@ -55,11 +55,11 @@ pub enum BootstrapError {
     #[from]
     TransportError(lnp::transport::Error),
 
-    #[cfg(feature = "server")]
+    #[cfg(any(feature = "server", feature = "embedded"))]
     #[from]
     VaultError(vault::driver::Error),
 
-    #[cfg(feature = "server")]
+    #[cfg(any(feature = "server", feature = "embedded"))]
     ConfigInitError,
 
     Other,
@@ -74,11 +74,11 @@ pub enum RuntimeError {
     #[from(lnp::presentation::Error)]
     Message,
 
-    #[cfg(feature = "server")]
+    #[cfg(any(feature = "server", feature = "embedded"))]
     #[from]
     VaultDriver(vault::driver::Error),
 
-    #[cfg(feature = "server")]
+    #[cfg(any(feature = "server", feature = "embedded"))]
     #[from]
     KeyManagement(vault::keymgm::Error),
 }

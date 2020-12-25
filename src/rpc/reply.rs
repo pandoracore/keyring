@@ -14,7 +14,7 @@
 //use lnpbp::bitcoin::util::bip32::{ExtendedPrivKey, ExtendedPubKey};
 use lnpbp::lnp::presentation::Error;
 
-#[cfg(feature = "server")]
+#[cfg(any(feature = "server", feature = "embedded"))]
 use crate::error::RuntimeError;
 
 #[derive(Clone, Debug, Display, LnpApi)]
@@ -65,7 +65,7 @@ impl From<Error> for Reply {
     }
 }
 
-#[cfg(feature = "server")]
+#[cfg(any(feature = "server", feature = "embedded"))]
 impl From<RuntimeError> for Reply {
     fn from(err: RuntimeError) -> Self {
         // TODO: Save error code taken from `Error::to_value()` after

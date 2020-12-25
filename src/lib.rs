@@ -23,7 +23,7 @@
     // missing_docs,
 )]
 
-#[cfg_attr(feature = "server", macro_use)]
+#[cfg_attr(any(feature = "server", feature = "embedded"), macro_use)]
 extern crate amplify;
 #[macro_use]
 extern crate amplify_derive;
@@ -36,16 +36,16 @@ extern crate serde_crate as serde;
 #[macro_use]
 extern crate serde_with;
 
-#[cfg(feature = "shell")]
+#[cfg(feature = "clap")]
 extern crate clap;
-#[cfg(feature = "shell")]
+#[cfg(feature = "log")]
 #[macro_use]
 extern crate log;
 
 #[cfg(feature = "cli")]
 pub mod cli;
 mod error;
-#[cfg(any(feature = "shell"))]
+#[cfg(any(feature = "shell", feature = "embedded"))]
 pub(crate) mod opts;
 #[cfg(any(feature = "node", feature = "client"))]
 pub mod rpc;
