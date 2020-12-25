@@ -15,7 +15,7 @@
 
 use ::core::any::Any;
 
-use super::{file_driver, Keyring};
+use super::{delegated, file_driver, Keyring};
 use crate::error::BootstrapError;
 
 pub trait Driver: Send + Sync {
@@ -32,6 +32,7 @@ pub trait Driver: Send + Sync {
 #[non_exhaustive]
 pub enum Config {
     File(file_driver::Config),
+    Delegated(delegated::Config),
     /* Terezor,
      * Ledger, */
 }

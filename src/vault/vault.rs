@@ -23,7 +23,10 @@ use lnpbp::bitcoin::util::psbt::PartiallySignedTransaction;
 use lnpbp::bp::bip32::KeyApplication;
 use lnpbp::bp::chain::{AssetId, Chain};
 
-use super::{driver, keymgm::Error, Driver, FileDriver, Keyring, KeysAccount};
+use super::{
+    driver, keymgm::Error, DelegatedDriver, Driver, FileDriver, Keyring,
+    KeysAccount,
+};
 use crate::error::{BootstrapError, RuntimeError};
 use crate::rpc::types::AccountInfo;
 
@@ -35,11 +38,16 @@ pub struct Vault {
 impl Vault {
     pub fn with(config: &driver::Config) -> Result<Self, BootstrapError> {
         let mut driver = match config {
-            driver::Config::File(fdc) => FileDriver::init(fdc)?,
+            driver::Config::File(fdc) => {
+                Box::new(FileDriver::init(fdc)?) as Box<dyn Driver>
+            }
+            driver::Config::Delegated(dc) => {
+                Box::new(DelegatedDriver::init(dc)?) as Box<dyn Driver>
+            }
         };
         let keyrings = driver.load()?;
         Ok(Self {
-            driver: Box::new(driver),
+            driver,
             //keyrings: vec![],
             keyrings,
         })

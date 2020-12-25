@@ -91,6 +91,7 @@ impl TryFrom<Opts> for Config {
             vault::driver::Config::File(ref mut fdc) => {
                 fdc.location = format!("{}/{}", me.data_dir, fdc.location)
             }
+            _ => {}
         }
 
         if opts.shared.init {
