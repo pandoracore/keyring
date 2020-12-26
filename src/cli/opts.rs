@@ -133,10 +133,18 @@ pub enum XPubkeyCommand {
     /// Derives new keys account from a given master extended public key
     /// identifier and derived path.
     Derive {
+        /// Master extended public key identifier to derive subaccount from
         #[clap(parse(try_from_str = FromHex::from_hex))]
         id: XpubIdentifier,
 
+        /// Subaccount derivation path starting with `m` prefix
         path: DerivationPath,
+
+        /// Name for newly generated account with a seed phrase
+        name: String,
+
+        /// More details information about the new account
+        details: Option<String>,
     },
 
     Export {

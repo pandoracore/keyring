@@ -11,6 +11,8 @@
 // along with this software.
 // If not, see <https://www.gnu.org/licenses/agpl-3.0-standalone.html>.
 
+use amplify::IoError;
+use lnpbp::bitcoin;
 use lnpbp::lnp;
 use lnpbp_services::rpc::Failure;
 
@@ -18,6 +20,12 @@ use lnpbp_services::rpc::Failure;
 #[display(Debug)]
 pub enum Error {
     UnexpectedServerResponse,
+
+    #[from(std::io::Error)]
+    Io(IoError),
+
+    #[from(bitcoin::consensus::encode::Error)]
+    Encoding,
 
     #[from]
     ServerFailure(Failure),

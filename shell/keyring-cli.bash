@@ -713,7 +713,7 @@ _keyring-cli() {
             return 0
             ;;
         keyring__cli__xpub__derive)
-            opts=" -d -v -T -x -n -h -V  --data-dir --verbose --tor-proxy --rpc-socket --chain --help --version  <id> <path> "
+            opts=" -d -v -T -x -n -h -V  --data-dir --verbose --tor-proxy --rpc-socket --chain --help --version  <id> <path> <name> <details> "
             if [[ ${cur} == -* || ${COMP_CWORD} -eq 3 ]] ; then
                 COMPREPLY=( $(compgen -W "${opts}" -- "${cur}") )
                 return 0

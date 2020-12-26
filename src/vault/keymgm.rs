@@ -904,7 +904,7 @@ impl KeysAccount {
         Ok(count)
     }
 
-    /// Produced signature for a given byte string `message`
+    /// Produces signature for a given byte string `message`
     pub fn sign_digest<H>(
         &self,
         digest: H,

@@ -20,6 +20,7 @@ use lnpbp::bitcoin::util::bip32::{
     DerivationPath, ExtendedPrivKey, ExtendedPubKey,
 };
 use lnpbp::bitcoin::util::psbt::PartiallySignedTransaction;
+use lnpbp::bitcoin::SigHashType;
 use lnpbp::bp::bip32::KeyApplication;
 use lnpbp::bp::chain::{AssetId, Chain};
 
@@ -163,19 +164,48 @@ impl Vault {
 
     pub fn sign_psbt(
         &self,
-        _psbt: PartiallySignedTransaction,
-        _decryption_key: &mut SecretKey,
+        mut psbt: PartiallySignedTransaction,
+        decryption_key: &mut SecretKey,
     ) -> Result<PartiallySignedTransaction, RuntimeError> {
-        /* TODO: Implement
-        debug!("Signing PSBT using all private keys from account {}", id);
-        let account = self.account_by_id(id).ok_or(Error::NotFound)?;
-        trace!("Keys account for key id is found: {}", account);
-        let pubkey = account.xpubkey().public_key;
-        trace!("Public key used for signing: {}", pubkey);
-        let digest = sha256::Hash::hash(&pubkey.key.serialize());
-        trace!("Signing key digest {}", digest);
-        Ok(account.sign_psbt(digest, decryption_key)?) */
-        unimplemented!()
+        // TODO: Rewriting supporting witness and proper signature creation
+        //       (via vault account)
+        trace!("{:?}", psbt);
+        let tx = &psbt.global.unsigned_tx;
+        for (index, inp) in psbt.inputs.iter_mut().enumerate() {
+            for (pubkey, (fingerprint, derivation)) in &inp.hd_keypaths {
+                if let Some(account) = self
+                    .keyrings
+                    .iter()
+                    .find(|keyring| keyring.fingerprint() == *fingerprint)
+                    .map::<&KeysAccount, _>(Keyring::master_account)
+                {
+                    let xpriv = account
+                        .xprivkey(decryption_key)?
+                        .derive_priv(&lnpbp::SECP256K1, &derivation)
+                        .map_err(|_| RuntimeError::Message)?;
+                    let sig_hash = tx.signature_hash(
+                        index,
+                        &inp.non_witness_utxo
+                            .as_ref()
+                            .ok_or(RuntimeError::Transport)?
+                            .output
+                            [tx.input[index].previous_output.vout as usize]
+                            .script_pubkey,
+                        SigHashType::All.as_u32(),
+                    );
+                    let signature = lnpbp::SECP256K1.sign(
+                        &lnpbp::secp256k1::Message::from_slice(&sig_hash[..])
+                            .map_err(|_| RuntimeError::Message)?,
+                        &xpriv.private_key.key,
+                    );
+                    let mut partial_sig = signature.serialize_der().to_vec();
+                    partial_sig.push(SigHashType::All.as_u32() as u8);
+                    inp.sighash_type = Some(SigHashType::All);
+                    inp.partial_sigs.insert(*pubkey, partial_sig);
+                }
+            }
+        }
+        Ok(psbt)
     }
 
     pub fn sign_key(

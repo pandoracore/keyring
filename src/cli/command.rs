@@ -11,12 +11,15 @@
 // along with this software.
 // If not, see <https://www.gnu.org/licenses/agpl-3.0-standalone.html>.
 
+use std::{fs, io};
+
+use lnpbp::bitcoin::consensus::encode::{Decodable, Encodable};
 use lnpbp::bitcoin::hashes::hex::ToHex;
 use lnpbp::bitcoin::secp256k1;
 use lnpbp::bitcoin::util::bip32::DerivationPath;
 use lnpbp::bitcoin::XpubIdentifier;
 use lnpbp::bp::bip32::KeyApplication;
-use lnpbp::bp::Chain;
+use lnpbp::bp::{Chain, Psbt};
 use lnpbp::strict_encoding::strict_encode;
 use lnpbp_services::format;
 use lnpbp_services::shell::Exec;
@@ -77,9 +80,12 @@ impl Exec for XPubkeyCommand {
     fn exec(&self, runtime: &mut Client) -> Result<(), Self::Error> {
         match self {
             XPubkeyCommand::List { format } => self.exec_list(runtime, format),
-            XPubkeyCommand::Derive { id, path } => {
-                self.exec_derive(runtime, id, path)
-            }
+            XPubkeyCommand::Derive {
+                id,
+                path,
+                name,
+                details,
+            } => self.exec_derive(runtime, id, path, name, details),
             XPubkeyCommand::Export { id, file } => {
                 self.exec_export(runtime, id, file)
             }
@@ -108,9 +114,59 @@ impl Exec for SignCommand {
     #[inline]
     fn exec(&self, runtime: &mut Client) -> Result<(), Self::Error> {
         match self {
-            SignCommand::Psbt { .. } => {
-                unimplemented!()
-                //self.exec_sign_psbt(runtime)
+            SignCommand::Psbt {
+                format,
+                in_file,
+                data,
+                out_file,
+            } => {
+                let reader = match (data, in_file) {
+                    (Some(data), _) => {
+                        Box::new(io::BufReader::new(io::Cursor::new(data)))
+                            as Box<dyn io::BufRead>
+                    }
+                    (None, None) => Box::new(io::BufReader::new(io::stdin()))
+                        as Box<dyn io::BufRead>,
+                    (_, Some(filename)) => {
+                        Box::new(io::BufReader::new(fs::File::open(filename)?))
+                            as Box<dyn io::BufRead>
+                    }
+                };
+                let psbt = match format {
+                    format::StructuredData::Bin => {
+                        Psbt::consensus_decode(reader)?
+                    }
+                    _ => unimplemented!(),
+                };
+                let reply = runtime.request(rpc::Request::SignPsbt(
+                    rpc::message::SignPsbt {
+                        psbt,
+                        decryption_key: secp256k1::key::ONE_KEY,
+                        auth_code: 0,
+                    },
+                ))?;
+                let psbt = match reply {
+                    rpc::Reply::Psbt(psbt) => psbt,
+                    rpc::Reply::Failure(failure) => {
+                        Err(rpc::Error::ServerFailure(failure))?
+                    }
+                    _ => Err(rpc::Error::UnexpectedServerResponse)?,
+                };
+                let writer = match out_file {
+                    Some(filename) => Box::new(io::BufWriter::new(
+                        fs::File::create(filename)?,
+                    ))
+                        as Box<dyn io::Write>,
+                    None => Box::new(io::BufWriter::new(io::stdout()))
+                        as Box<dyn io::Write>,
+                };
+                match format {
+                    format::StructuredData::Bin => {
+                        psbt.consensus_encode(writer)?;
+                    }
+                    _ => unimplemented!(),
+                }
+                Ok(())
             }
             SignCommand::File { .. } => unimplemented!(),
             SignCommand::Text { .. } => unimplemented!(),
@@ -212,11 +268,33 @@ impl XPubkeyCommand {
 
     pub fn exec_derive(
         &self,
-        _runtime: &mut Client,
-        _id: &XpubIdentifier,
-        _path: &DerivationPath,
+        runtime: &mut Client,
+        id: &XpubIdentifier,
+        path: &DerivationPath,
+        name: &String,
+        details: &Option<String>,
     ) -> Result<(), rpc::Error> {
-        unimplemented!()
+        debug!("Deriving new subaccount");
+        let reply =
+            runtime.request(rpc::Request::Derive(rpc::message::Derive {
+                from: *id,
+                path: path.clone(),
+                name: name.clone(),
+                details: details.as_ref().cloned().unwrap_or_default(),
+                assets: Default::default(),
+                decryption_key: secp256k1::key::ONE_KEY,
+                auth_code: 0,
+            }))?;
+        match reply {
+            rpc::Reply::AccountInfo(info) => {
+                println!("{}", info);
+                Ok(())
+            }
+            rpc::Reply::Failure(failure) => {
+                Err(rpc::Error::ServerFailure(failure.clone()))
+            }
+            _ => Err(rpc::Error::UnexpectedServerResponse),
+        }
     }
 
     pub fn exec_export(

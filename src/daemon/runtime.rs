@@ -137,18 +137,16 @@ impl Runtime {
         Ok(Reply::Keylist(accounts))
     }
 
-    fn rpc_derive(
-        &mut self,
-        mut derive: message::Derive,
-    ) -> Result<Reply, Reply> {
+    fn rpc_derive(&mut self, derive: message::Derive) -> Result<Reply, Reply> {
         trace!("Awaiting for the vault lock");
+        let mut seckey = self.config.node_key.clone();
         let account = self.vault.derive(
             derive.from,
             derive.path,
             derive.name,
             Some(derive.details),
             derive.assets,
-            &mut derive.decryption_key,
+            &mut seckey, //TODO: &mut derive.decryption_key,
         )?;
         trace!("Vault lock released");
         Ok(Reply::AccountInfo(account))
@@ -178,12 +176,14 @@ impl Runtime {
 
     fn rpc_sign_psbt(
         &mut self,
-        mut message: message::SignPsbt,
+        message: message::SignPsbt,
     ) -> Result<Reply, Reply> {
         trace!("Awaiting for the vault lock");
-        let psbt = self
-            .vault
-            .sign_psbt(message.psbt, &mut message.decryption_key)?;
+        let mut seckey = self.config.node_key.clone();
+        let psbt = self.vault.sign_psbt(
+            message.psbt,
+            &mut seckey, //TODO: &mut derive.decryption_key,
+        )?;
         trace!("Vault lock released");
         Ok(Reply::Psbt(psbt))
     }

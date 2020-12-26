@@ -190,8 +190,10 @@ _arguments "${_arguments_options[@]}" \
 '--help[Prints help information]' \
 '-V[Prints version information]' \
 '--version[Prints version information]' \
-':id:' \
-':path:' \
+':id -- Master extended public key identifier to derive subaccount from:' \
+':path -- Subaccount derivation path starting with `m` prefix:' \
+':name -- Name for newly generated account with a seed phrase:' \
+'::details -- More details information about the new account:' \
 && ret=0
 ;;
 (export)
