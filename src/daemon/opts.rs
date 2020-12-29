@@ -12,35 +12,14 @@
 // If not, see <https://www.gnu.org/licenses/agpl-3.0-standalone.html>.
 
 use ::clap::{AppSettings, Clap, ValueHint};
+use lnpbp_services::format::FileStorage;
 
 pub const KEYRING_CONFIG: &'static str = "{data_dir}/keyringd.toml";
 #[cfg(feature = "serde_yaml")]
-pub const KEYRING_VAULT_FORMAT: FileFormat = FileFormat::Yaml;
+pub const KEYRING_VAULT_FORMAT: FileStorage = FileStorage::Yaml;
 #[cfg(not(feature = "serde_yaml"))]
-pub const KEYRING_VAULT_FORMAT: FileFormat = FileFormat::StrictEncoded;
+pub const KEYRING_VAULT_FORMAT: FileStorage = FileStorage::StrictEncoded;
 pub const KEYRING_VAULT_FILE: &'static str = "vault.yaml";
-
-#[derive(
-    Copy, Clone, PartialEq, Eq, Hash, Debug, Display, Serialize, Deserialize,
-)]
-#[serde(crate = "serde_crate")]
-#[non_exhaustive]
-pub enum FileFormat {
-    #[display("strict-encoded")]
-    StrictEncoded,
-
-    #[cfg(feature = "serde_yaml")]
-    #[display("yaml")]
-    Yaml,
-
-    #[cfg(feature = "toml")]
-    #[display("toml")]
-    Toml,
-
-    #[cfg(feature = "serde_json")]
-    #[display("json")]
-    Json,
-}
 
 #[derive(Clap, Clone, PartialEq, Eq, Hash, Debug)]
 #[clap(

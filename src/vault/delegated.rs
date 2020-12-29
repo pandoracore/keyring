@@ -76,7 +76,7 @@ impl Driver for DelegatedDriver {
         Ok(vec![])
     }
 
-    fn store(&mut self, accounts: &Vec<Keyring>) -> Result<(), driver::Error> {
+    fn store(&mut self, _accounts: &Vec<Keyring>) -> Result<(), driver::Error> {
         debug!("Storing vault data to the valut");
         trace!("Vault data stored");
         Ok(())

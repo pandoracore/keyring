@@ -26,7 +26,7 @@ amplify = "~2.4.0"
 amplify_derive = "~2.4.2"
 lnpbp = { version = "~0.2.1", features = ["lnp", "keygen", "elgamal", "tor", "websockets"] }
 lnpbp_derive = "~0.2.0"
-lnpbp_services = "~0.2.0"
+lnpbp_services = "~0.2.2"
 # Rust language
 lazy_static = "~1.4.0"
 chrono = "~0.4.19"

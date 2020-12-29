@@ -930,9 +930,9 @@ dependencies = [
 
 [[package]]
 name = "lnpbp_services"
-version = "0.2.1"
+version = "0.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b5216e4d9b081a20877ee51686efff2af65088a0ae27adc4f0582d0580e7fec9"
+checksum = "d7656ad0d6fa9b1dd0efad6e232e901e5e446138b71de7b8d0eb7d28733ec92a"
 dependencies = [
  "amplify",
  "amplify_derive",

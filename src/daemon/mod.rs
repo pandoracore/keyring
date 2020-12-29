@@ -16,5 +16,5 @@ pub(crate) mod opts;
 mod runtime;
 
 pub use config::Config;
-pub use opts::{FileFormat, Opts};
+pub use opts::Opts;
 pub use runtime::{run, Runtime};
