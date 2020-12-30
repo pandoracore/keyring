@@ -20,7 +20,7 @@ use lnpbp::bitcoin::util::bip32::DerivationPath;
 use lnpbp::bitcoin::XpubIdentifier;
 use lnpbp::bp::bip32::KeyApplication;
 use lnpbp::bp::{Chain, Psbt};
-use lnpbp::strict_encoding::strict_encode;
+use lnpbp::strict_encoding::strict_serialize;
 use lnpbp_services::format;
 use lnpbp_services::shell::Exec;
 
@@ -249,10 +249,10 @@ impl XPubkeyCommand {
                         toml::to_string(&accounts).expect(ERR)
                     }
                     format::StructuredData::Hex => {
-                        strict_encode(&accounts).expect(ERR).to_hex()
+                        strict_serialize(&accounts).expect(ERR).to_hex()
                     }
                     format::StructuredData::Base64 => {
-                        base64::encode(strict_encode(&accounts).expect(ERR))
+                        base64::encode(strict_serialize(&accounts).expect(ERR))
                     }
                     _ => unimplemented!(),
                 };
