@@ -21,8 +21,8 @@ use bitcoin::util::psbt::PartiallySignedTransaction as Psbt;
 use bitcoin::XpubIdentifier;
 use lnpbp::strict_encoding::strict_serialize;
 use lnpbp::Chain;
-use microservices::format;
 use microservices::shell::Exec;
+use microservices::StructuredFormat;
 use slip132::KeyApplication;
 
 use super::Client;
@@ -134,9 +134,7 @@ impl Exec for SignCommand {
                     }
                 };
                 let psbt = match format {
-                    format::StructuredData::Bin => {
-                        Psbt::consensus_decode(reader)?
-                    }
+                    StructuredFormat::Bin => Psbt::consensus_decode(reader)?,
                     _ => unimplemented!(),
                 };
                 let reply = runtime.request(rpc::Request::SignPsbt(
@@ -162,7 +160,7 @@ impl Exec for SignCommand {
                         as Box<dyn io::Write>,
                 };
                 match format {
-                    format::StructuredData::Bin => {
+                    StructuredFormat::Bin => {
                         psbt.consensus_encode(writer)?;
                     }
                     _ => unimplemented!(),
@@ -228,7 +226,7 @@ impl XPubkeyCommand {
     pub fn exec_list(
         &self,
         runtime: &mut Client,
-        format: &format::StructuredData,
+        format: &StructuredFormat,
     ) -> Result<(), rpc::Error> {
         const ERR: &'static str = "Error formatting data";
 
@@ -238,21 +236,21 @@ impl XPubkeyCommand {
             rpc::Reply::Keylist(accounts) => {
                 let result = match format {
                     #[cfg(feature = "serde_json")]
-                    format::StructuredData::Json => {
+                    StructuredFormat::Json => {
                         serde_json::to_string(&accounts).expect(ERR)
                     }
                     #[cfg(feature = "serde_yaml")]
-                    format::StructuredData::Yaml => {
+                    StructuredFormat::Yaml => {
                         serde_yaml::to_string(&accounts).expect(ERR)
                     }
                     #[cfg(feature = "toml")]
-                    format::StructuredData::Toml => {
+                    StructuredFormat::Toml => {
                         toml::to_string(&accounts).expect(ERR)
                     }
-                    format::StructuredData::Hex => {
+                    StructuredFormat::Hex => {
                         strict_serialize(&accounts).expect(ERR).to_hex()
                     }
-                    format::StructuredData::Base64 => {
+                    StructuredFormat::Base64 => {
                         base64::encode(strict_serialize(&accounts).expect(ERR))
                     }
                     _ => unimplemented!(),

@@ -45,12 +45,6 @@ pub enum BootstrapError {
     ArgParseError(String),
 
     #[from]
-    ZmqSocketError(zmq::Error),
-
-    #[cfg(feature = "monitoring")]
-    MonitorSocketError(Box<dyn std::error::Error + Send>),
-
-    #[from]
     TransportError(internet2::transport::Error),
 
     #[cfg(any(feature = "server", feature = "embedded"))]

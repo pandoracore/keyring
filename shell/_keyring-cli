@@ -156,8 +156,8 @@ case $state in
         case $line[1] in
             (list)
 _arguments "${_arguments_options[@]}" \
-'-f+[]: :(json yaml toml bin hex bech32 base64)' \
-'--format=[]: :(json yaml toml bin hex bech32 base64)' \
+'-f+[]: :(bin hex bech32 base58 base64 json yaml toml)' \
+'--format=[]: :(bin hex bech32 base58 base64 json yaml toml)' \
 '-d+[Data directory path]: :_files -/' \
 '--data-dir=[Data directory path]: :_files -/' \
 '*-T+[Use Tor]: :_hosts' \
@@ -296,8 +296,8 @@ case $state in
         case $line[1] in
             (psbt)
 _arguments "${_arguments_options[@]}" \
-'-f+[]: :(json yaml toml bin hex bech32 base64)' \
-'--format=[]: :(json yaml toml bin hex bech32 base64)' \
+'-f+[]: :(bin hex bech32 base58 base64 json yaml toml)' \
+'--format=[]: :(bin hex bech32 base58 base64 json yaml toml)' \
 '-i+[Input file to read PSBT from. If absent, and no `data` parameter is provided, data are read from STDIN. The file and data must be in a `format` format]' \
 '--in=[Input file to read PSBT from. If absent, and no `data` parameter is provided, data are read from STDIN. The file and data must be in a `format` format]' \
 '-o+[Output file to save transcoded data. If absent, data are written to STDOUT]' \

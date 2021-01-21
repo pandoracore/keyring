@@ -34,24 +34,24 @@ extern crate internet2;
 #[macro_use]
 extern crate lazy_static;
 
-#[cfg(feature = "serde")]
-extern crate serde_crate as serde;
-#[cfg(feature = "serde")]
-#[macro_use]
-extern crate serde_with;
-
 #[cfg(feature = "clap")]
 extern crate clap;
 #[cfg(feature = "log")]
 #[macro_use]
 extern crate log;
 
+#[cfg(feature = "serde")]
+extern crate serde_crate as serde;
+#[cfg(feature = "serde")]
+#[macro_use]
+extern crate serde_with;
+
 #[cfg(feature = "cli")]
 pub mod cli;
 mod error;
 #[cfg(any(feature = "shell", feature = "embedded"))]
 pub(crate) mod opts;
-#[cfg(any(feature = "node", feature = "client"))]
+#[cfg(feature = "_rpc")]
 pub mod rpc;
 
 #[cfg(feature = "node")]

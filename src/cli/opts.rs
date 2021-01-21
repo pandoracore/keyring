@@ -18,7 +18,7 @@ use bitcoin::hashes::hex::FromHex;
 use bitcoin::util::bip32::DerivationPath;
 use bitcoin::XpubIdentifier;
 use lnpbp::Chain;
-use microservices::format;
+use microservices::StructuredFormat;
 use slip132::KeyApplication;
 
 pub const KEYRING_CLI_CONFIG: &'static str = "{data_dir}/keyring-cli.toml";
@@ -127,7 +127,7 @@ pub enum SeedCommand {
 pub enum XPubkeyCommand {
     List {
         #[clap(short, long, arg_enum, default_value = "yaml")]
-        format: format::StructuredData,
+        format: StructuredFormat,
     },
 
     /// Derives new keys account from a given master extended public key
@@ -175,7 +175,7 @@ pub enum SignCommand {
             arg_enum,
             default_value = "base64"
         )]
-        format: format::StructuredData,
+        format: StructuredFormat,
 
         /// Input file to read PSBT from. If absent, and no `data` parameter
         /// is provided, data are read from STDIN. The file and data must be in

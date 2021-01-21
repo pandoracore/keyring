@@ -462,11 +462,11 @@ _keyring-cli() {
             case "${prev}" in
                 
                 --format)
-                    COMPREPLY=($(compgen -W "json yaml toml bin hex bech32 base64" -- "${cur}"))
+                    COMPREPLY=($(compgen -W "bin hex bech32 base58 base64 json yaml toml" -- "${cur}"))
                     return 0
                     ;;
                     -f)
-                    COMPREPLY=($(compgen -W "json yaml toml bin hex bech32 base64" -- "${cur}"))
+                    COMPREPLY=($(compgen -W "bin hex bech32 base58 base64 json yaml toml" -- "${cur}"))
                     return 0
                     ;;
                 --in)
@@ -815,11 +815,11 @@ _keyring-cli() {
             case "${prev}" in
                 
                 --format)
-                    COMPREPLY=($(compgen -W "json yaml toml bin hex bech32 base64" -- "${cur}"))
+                    COMPREPLY=($(compgen -W "bin hex bech32 base58 base64 json yaml toml" -- "${cur}"))
                     return 0
                     ;;
                     -f)
-                    COMPREPLY=($(compgen -W "json yaml toml bin hex bech32 base64" -- "${cur}"))
+                    COMPREPLY=($(compgen -W "bin hex bech32 base58 base64 json yaml toml" -- "${cur}"))
                     return 0
                     ;;
                 --data-dir)
