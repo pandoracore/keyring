@@ -13,16 +13,17 @@
 
 use std::{fs, io};
 
-use lnpbp::bitcoin::consensus::encode::{Decodable, Encodable};
-use lnpbp::bitcoin::hashes::hex::ToHex;
-use lnpbp::bitcoin::secp256k1;
-use lnpbp::bitcoin::util::bip32::DerivationPath;
-use lnpbp::bitcoin::XpubIdentifier;
-use lnpbp::bp::bip32::KeyApplication;
-use lnpbp::bp::{Chain, Psbt};
+use bitcoin::consensus::encode::{Decodable, Encodable};
+use bitcoin::hashes::hex::ToHex;
+use bitcoin::secp256k1;
+use bitcoin::util::bip32::DerivationPath;
+use bitcoin::util::psbt::PartiallySignedTransaction as Psbt;
+use bitcoin::XpubIdentifier;
 use lnpbp::strict_encoding::strict_serialize;
-use lnpbp_services::format;
-use lnpbp_services::shell::Exec;
+use lnpbp::Chain;
+use microservices::format;
+use microservices::shell::Exec;
+use slip132::KeyApplication;
 
 use super::Client;
 use super::{

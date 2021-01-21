@@ -11,13 +11,14 @@
 // along with this software.
 // If not, see <https://www.gnu.org/licenses/agpl-3.0-standalone.html>.
 
-//use lnpbp::bitcoin::util::bip32::{ExtendedPrivKey, ExtendedPubKey};
-use lnpbp::lnp::presentation::Error;
+//use bitcoin::util::bip32::{ExtendedPrivKey, ExtendedPubKey};
+use internet2::presentation::Error;
 
 #[cfg(any(feature = "server", feature = "embedded"))]
 use crate::error::RuntimeError;
 
 #[derive(Clone, Debug, Display, LnpApi)]
+#[encoding_crate(lnpbp::strict_encoding)]
 #[lnp_api(encoding = "strict")]
 #[non_exhaustive]
 pub enum Reply {
@@ -27,7 +28,7 @@ pub enum Reply {
 
     #[lnp_api(type = 0x0102)]
     #[display("failure({0})")]
-    Failure(lnpbp_services::rpc::Failure),
+    Failure(microservices::rpc::Failure),
 
     #[lnp_api(type = 0x0200)]
     #[display("keylist(...)")]
@@ -39,26 +40,26 @@ pub enum Reply {
 
     #[lnp_api(type = 0x0300)]
     #[display("xpriv(...)")]
-    XPriv(::lnpbp::bitcoin::util::bip32::ExtendedPrivKey),
+    XPriv(::bitcoin::util::bip32::ExtendedPrivKey),
 
     #[lnp_api(type = 0x0302)]
     #[display("xpub({0})")]
-    XPub(::lnpbp::bitcoin::util::bip32::ExtendedPubKey),
+    XPub(::bitcoin::util::bip32::ExtendedPubKey),
 
     #[lnp_api(type = 0x0500)]
     #[display("signature({0})")]
-    Signature(::lnpbp::bitcoin::secp256k1::Signature),
+    Signature(::bitcoin::secp256k1::Signature),
 
     #[lnp_api(type = 0x0502)]
     #[display("psbt(...)")]
-    Psbt(::lnpbp::bitcoin::util::psbt::PartiallySignedTransaction),
+    Psbt(::bitcoin::util::psbt::PartiallySignedTransaction),
 }
 
 impl From<Error> for Reply {
     fn from(err: Error) -> Self {
         // TODO: Save error code taken from `Error::to_value()` after
         //       implementation of `ToValue` trait and derive macro for enums
-        Reply::Failure(lnpbp_services::rpc::Failure {
+        Reply::Failure(microservices::rpc::Failure {
             code: 0,
             info: format!("{}", err),
         })
@@ -70,7 +71,7 @@ impl From<RuntimeError> for Reply {
     fn from(err: RuntimeError) -> Self {
         // TODO: Save error code taken from `Error::to_value()` after
         //       implementation of `ToValue` trait and derive macro for enums
-        Reply::Failure(lnpbp_services::rpc::Failure {
+        Reply::Failure(microservices::rpc::Failure {
             code: 0,
             info: format!("{}", err),
         })

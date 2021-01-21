@@ -11,11 +11,9 @@
 // along with this software.
 // If not, see <https://www.gnu.org/licenses/agpl-3.0-standalone.html>.
 
-use ::std::io;
 #[cfg(any(feature = "shell", feature = "embedded"))]
 use settings::ConfigError;
-
-use lnpbp::lnp;
+use std::io;
 
 #[cfg(any(feature = "server", feature = "embedded"))]
 use crate::vault;
@@ -53,7 +51,7 @@ pub enum BootstrapError {
     MonitorSocketError(Box<dyn std::error::Error + Send>),
 
     #[from]
-    TransportError(lnp::transport::Error),
+    TransportError(internet2::transport::Error),
 
     #[cfg(any(feature = "server", feature = "embedded"))]
     #[from]
@@ -68,10 +66,10 @@ pub enum BootstrapError {
 #[derive(Debug, Display, Error, From)]
 #[display(Debug)]
 pub enum RuntimeError {
-    #[from(lnp::transport::Error)]
+    #[from(internet2::transport::Error)]
     Transport,
 
-    #[from(lnp::presentation::Error)]
+    #[from(internet2::presentation::Error)]
     Message,
 
     #[cfg(any(feature = "server", feature = "embedded"))]

@@ -12,6 +12,7 @@
 // If not, see <https://www.gnu.org/licenses/agpl-3.0-standalone.html>.
 
 #[derive(Clone, Debug, Display, LnpApi)]
+#[encoding_crate(lnpbp::strict_encoding)]
 #[lnp_api(encoding = "strict")]
 #[non_exhaustive]
 pub enum Request {

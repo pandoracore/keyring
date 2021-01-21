@@ -20,9 +20,9 @@ use ::std::fs::File;
 use ::std::io::Write;
 use ::std::process::exit;
 
-use lnpbp::bitcoin::secp256k1;
-use lnpbp::lnp::zmqsocket::ZmqSocketAddr;
-use lnpbp_services::shell::LogLevel;
+use bitcoin::secp256k1;
+use internet2::zmqsocket::ZmqSocketAddr;
+use microservices::shell::LogLevel;
 
 use super::Opts;
 use crate::error::ConfigInitError;
@@ -124,13 +124,13 @@ impl Config {
     }
 
     pub fn node_id(&self) -> secp256k1::PublicKey {
-        secp256k1::PublicKey::from_secret_key(&lnpbp::SECP256K1, &self.node_key)
+        secp256k1::PublicKey::from_secret_key(&crate::SECP256K1, &self.node_key)
     }
 }
 
 impl Default for Config {
     fn default() -> Self {
-        use lnpbp::bitcoin::secp256k1::rand::thread_rng;
+        use bitcoin::secp256k1::rand::thread_rng;
         let mut rng = thread_rng();
         let node_key = secp256k1::SecretKey::new(&mut rng);
         Self {

@@ -11,8 +11,8 @@
 // along with this software.
 // If not, see <https://www.gnu.org/licenses/agpl-3.0-standalone.html>.
 
-use ::clap::{AppSettings, Clap, ValueHint};
-use lnpbp_services::format::FileStorage;
+use clap::{AppSettings, Clap, ValueHint};
+use microservices::format::FileStorage;
 
 pub const KEYRING_CONFIG: &'static str = "{data_dir}/keyringd.toml";
 #[cfg(feature = "serde_yaml")]

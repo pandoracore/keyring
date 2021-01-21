@@ -15,11 +15,11 @@
 use serde_with::DisplayFromStr;
 use std::collections::HashSet;
 
-use lnpbp::bitcoin::hash_types::XpubIdentifier;
-use lnpbp::bitcoin::util::bip32::Fingerprint;
-use lnpbp::bitcoin::util::bip32::KeySource;
-use lnpbp::bp::bip32::KeyApplication;
-use lnpbp::bp::chain::AssetId;
+use bitcoin::hash_types::XpubIdentifier;
+use bitcoin::util::bip32::Fingerprint;
+use bitcoin::util::bip32::KeySource;
+use lnpbp::chain::AssetId;
+use slip132::KeyApplication;
 
 #[cfg(feature = "node")]
 use crate::vault::{Keyring, KeysAccount};
@@ -34,6 +34,7 @@ pub type AuthCode = u32;
 )]
 #[derive(Clone, PartialEq, Eq, Debug, Display, StrictEncode, StrictDecode)]
 #[display("AccountInfo({id}, {name}, {key_id}, {fingerprint}, ...)")]
+#[strict_encoding_crate(lnpbp::strict_encoding)]
 #[non_exhaustive]
 pub struct AccountInfo {
     pub id: XpubIdentifier,

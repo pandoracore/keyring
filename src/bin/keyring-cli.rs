@@ -29,7 +29,7 @@
 extern crate log;
 
 use clap::Clap;
-use lnpbp_services::shell::Exec;
+use microservices::shell::Exec;
 use std::convert::TryInto;
 
 use keyring::cli::{Client, Config, Opts};

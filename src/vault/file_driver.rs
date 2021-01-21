@@ -20,7 +20,7 @@ use ::std::io::{Read, Seek, Write};
 use ::std::path::Path;
 
 use lnpbp::strict_encoding::{StrictDecode, StrictEncode};
-use lnpbp_services::format::FileStorage;
+use microservices::format::FileStorage;
 
 use super::{driver, Driver, Keyring};
 use crate::error::BootstrapError;

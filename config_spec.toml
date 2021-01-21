@@ -24,12 +24,12 @@ default = "std::net::SocketAddr::from_str(\"127.0.0.1:9050\").unwrap()"
 
 [[param]]
 name = "msg_socket"
-type = "lnpbp::lnp::transport::zmq::SocketLocator"
+type = "internet2::transport::zmq::SocketLocator"
 abbr = "m"
 doc = "ZMQ socket name/address to forward all incoming lightning messages"
 
 [[param]]
 name = "ctl_socket"
-type = "lnpbp::lnp::transport::zmq::SocketLocator"
+type = "internet2::transport::zmq::SocketLocator"
 abbr = "l"
 doc = "ZMQ socket name/address for RPC control protocol"

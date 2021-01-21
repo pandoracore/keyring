@@ -12,9 +12,8 @@
 // If not, see <https://www.gnu.org/licenses/agpl-3.0-standalone.html>.
 
 use amplify::IoError;
-use lnpbp::bitcoin;
-use lnpbp::lnp;
-use lnpbp_services::rpc::Failure;
+use bitcoin;
+use microservices::rpc::Failure;
 
 #[derive(Clone, Debug, Display, Error, From)]
 #[display(Debug)]
@@ -31,10 +30,10 @@ pub enum Error {
     ServerFailure(Failure),
 
     #[from]
-    PresentationError(lnp::presentation::Error),
+    PresentationError(internet2::presentation::Error),
 
     #[from]
-    TransportError(lnp::transport::Error),
+    TransportError(internet2::transport::Error),
 }
 
-impl lnpbp_services::error::Error for Error {}
+impl microservices::error::Error for Error {}

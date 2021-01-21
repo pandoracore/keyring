@@ -13,16 +13,17 @@
 
 use std::collections::HashSet;
 
-use lnpbp::bitcoin::hash_types::XpubIdentifier;
-use lnpbp::bitcoin::secp256k1::SecretKey;
-use lnpbp::bitcoin::util::bip32::DerivationPath;
-use lnpbp::bitcoin::util::psbt::PartiallySignedTransaction;
-use lnpbp::bp::bip32::KeyApplication;
-use lnpbp::bp::chain::{AssetId, Chain};
+use bitcoin::hash_types::XpubIdentifier;
+use bitcoin::secp256k1::SecretKey;
+use bitcoin::util::bip32::DerivationPath;
+use bitcoin::util::psbt::PartiallySignedTransaction;
+use lnpbp::chain::{AssetId, Chain};
+use slip132::KeyApplication;
 
 use super::types::AuthCode;
 
 #[derive(Clone, Debug, Display, StrictEncode, StrictDecode)]
+#[strict_encoding_crate(lnpbp::strict_encoding)]
 #[display("{name}, {chain}, {application:?} ...")]
 pub struct Seed {
     pub name: String,
@@ -33,6 +34,7 @@ pub struct Seed {
 }
 
 #[derive(Clone, Debug, Display, StrictEncode, StrictDecode)]
+#[strict_encoding_crate(lnpbp::strict_encoding)]
 #[display("{key_id}, ...")]
 pub struct Export {
     pub key_id: XpubIdentifier,
@@ -41,6 +43,7 @@ pub struct Export {
 }
 
 #[derive(Clone, Debug, Display, StrictEncode, StrictDecode)]
+#[strict_encoding_crate(lnpbp::strict_encoding)]
 #[display("{from}, {path}, {name}, ...")]
 pub struct Derive {
     pub from: XpubIdentifier,
@@ -53,6 +56,7 @@ pub struct Derive {
 }
 
 #[derive(Clone, Debug, Display, StrictEncode, StrictDecode)]
+#[strict_encoding_crate(lnpbp::strict_encoding)]
 #[display("...")]
 pub struct SignPsbt {
     pub psbt: PartiallySignedTransaction,
@@ -61,6 +65,7 @@ pub struct SignPsbt {
 }
 
 #[derive(Clone, Debug, Display, StrictEncode, StrictDecode)]
+#[strict_encoding_crate(lnpbp::strict_encoding)]
 #[display("{key_id}, ...")]
 pub struct SignKey {
     pub key_id: XpubIdentifier,
@@ -69,6 +74,7 @@ pub struct SignKey {
 }
 
 #[derive(Clone, Debug, Display, StrictEncode, StrictDecode)]
+#[strict_encoding_crate(lnpbp::strict_encoding)]
 #[display("{key_id}, {data:#x?}, ...")]
 pub struct SignData {
     pub key_id: XpubIdentifier,

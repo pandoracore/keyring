@@ -22,11 +22,13 @@ required-features = ["cli"]
 
 [dependencies]
 # Rust language
-amplify = "~2.4.0"
-amplify_derive = "~2.4.2"
-lnpbp = { version = "0.3.0-alpha.1", git = "https://github.com/LNP-BP/rust-lnpbp", features = ["lnp", "keygen", "elgamal", "tor", "websockets"] }
-lnpbp_derive = { version = "0.3.0-alpha.1", git = "https://github.com/LNP-BP/rust-lnpbp" }
-lnpbp_services = { version = "0.3.0-alpha.1", git = "https://github.com/LNP-BP/rust-lnpbp" }
+amplify = "3"
+amplify_derive = "2.4.2"
+lnpbp = { version = "0.3", features = ["elgamal"] }
+bitcoin = { version = "0.26", features = ["rand"] }
+slip132 = "0.3.0-rc.1"
+internet2 = "0.3"
+microservices = "0.3"
 # Rust language
 lazy_static = "~1.4.0"
 chrono = "~0.4.19"
@@ -54,8 +56,11 @@ zmq = { version = "~0.9.2", optional = true }
 [build-dependencies]
 amplify = "~2.4.0"
 amplify_derive = "~2.4.2"
-lnpbp = { version = "0.3.0-alpha.1", git = "https://github.com/LNP-BP/rust-lnpbp", features = ["lnp", "keygen", "elgamal", "tor", "websockets"] }
-lnpbp_services = { version = "0.3.0-alpha.1", git = "https://github.com/LNP-BP/rust-lnpbp", features = ["cli"] }
+lnpbp = "0.3"
+bitcoin = "0.26"
+slip132 = "0.3.0-rc.1"
+internet2 = "0.3"
+microservices = { version = "0.3", features = ["cli"] }
 serde_crate = { package = "serde", version = "~1.0.106", features = ["derive"] }
 lazy_static = "~1.4.0"
 clap = "=3.0.0-beta.2"
@@ -76,29 +81,30 @@ zmq = { version = "~0.9", features = ["vendored"] }
 [features]
 default = ["client"]
 # Server is a standalone application that runs daemon
-server = ["node", "shell", "lnpbp_services/server", "serde"]
+server = ["node", "shell", "microservices/server", "serde"]
 # Feature is required for any applications that talks to daemon processes
-client = ["zmq", "lnpbp_services/client", "lnpbp/keygen",
-          "url", "lnpbp/url"]
+client = ["zmq", "microservices/client", "bitcoin/rand",
+          "url", "internet2/url"]
 # Embedded is an app that contains ndoe in itself and that talks to it through
 # integration layer
-embedded = ["client", "node", "lnpbp_services/embedded",
+embedded = ["client", "node", "microservices/embedded",
             "log", "clap", "settings", "shellexpand"]
 # Command-line application feature
-cli = ["shell", "client", "lnpbp_services/cli", "base64"]
+cli = ["shell", "client", "microservices/cli", "base64"]
 # Required for all apps that can be launched from command-line shell as binaries
 # (i.e. both servers and cli)
 shell = [
     "dotenv", "clap", "settings", "configure_me", "log", "env_logger", "serde",
-    "amplify/parse_arg", "lnpbp_services/shell", "shellexpand", "colored"
+    "amplify/parse_arg", "microservices/shell", "shellexpand", "colored"
 ]
 # Besides server node can be run as a part of mobile app
 # and other types of clients; thus `server` != `node`.
 # This feature results in building with features not required for CLI
-node = ["serde", "lnpbp/keygen", "zmq", "lnpbp_services/node",
-        "url", "lnpbp/url"]
+node = ["serde", "bitcoin/rand", "zmq", "microservices/node",
+        "url", "internet2/url"]
 serde = ["serde_crate", "serde_with", "serde_yaml", "toml",
-         "amplify/serde", "lnpbp/serde", "lnpbp_services/serde", "chrono/serde"]
+         "amplify/serde", "lnpbp/serde", "microservices/serde", "chrono/serde",
+         "slip132/serde"]
 
 [package.metadata.configure_me]
 spec = "config_spec.toml"

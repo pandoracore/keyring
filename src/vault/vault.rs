@@ -13,16 +13,14 @@
 
 use std::collections::HashSet;
 
-use lnpbp::bitcoin::hash_types::XpubIdentifier;
-use lnpbp::bitcoin::hashes::{sha256, Hash};
-use lnpbp::bitcoin::secp256k1::{PublicKey, SecretKey, Signature};
-use lnpbp::bitcoin::util::bip32::{
-    DerivationPath, ExtendedPrivKey, ExtendedPubKey,
-};
-use lnpbp::bitcoin::util::psbt::PartiallySignedTransaction;
-use lnpbp::bitcoin::SigHashType;
-use lnpbp::bp::bip32::KeyApplication;
-use lnpbp::bp::chain::{AssetId, Chain};
+use bitcoin::hash_types::XpubIdentifier;
+use bitcoin::hashes::{sha256, Hash};
+use bitcoin::secp256k1::{PublicKey, SecretKey, Signature};
+use bitcoin::util::bip32::{DerivationPath, ExtendedPrivKey, ExtendedPubKey};
+use bitcoin::util::psbt::PartiallySignedTransaction;
+use bitcoin::SigHashType;
+use lnpbp::chain::{AssetId, Chain};
+use slip132::KeyApplication;
 
 use super::{
     driver, keymgm::Error, DelegatedDriver, Driver, FileDriver, Keyring,
@@ -172,7 +170,7 @@ impl Vault {
         trace!("{:?}", psbt);
         let tx = &psbt.global.unsigned_tx;
         for (index, inp) in psbt.inputs.iter_mut().enumerate() {
-            for (pubkey, (fingerprint, derivation)) in &inp.hd_keypaths {
+            for (pubkey, (fingerprint, derivation)) in &inp.bip32_derivation {
                 if let Some(account) = self
                     .keyrings
                     .iter()
@@ -181,7 +179,7 @@ impl Vault {
                 {
                     let xpriv = account
                         .xprivkey(decryption_key)?
-                        .derive_priv(&lnpbp::SECP256K1, &derivation)
+                        .derive_priv(&crate::SECP256K1, &derivation)
                         .map_err(|_| RuntimeError::Message)?;
                     let sig_hash = tx.signature_hash(
                         index,
@@ -193,8 +191,8 @@ impl Vault {
                             .script_pubkey,
                         SigHashType::All.as_u32(),
                     );
-                    let signature = lnpbp::SECP256K1.sign(
-                        &lnpbp::secp256k1::Message::from_slice(&sig_hash[..])
+                    let signature = crate::SECP256K1.sign(
+                        &bitcoin::secp256k1::Message::from_slice(&sig_hash[..])
                             .map_err(|_| RuntimeError::Message)?,
                         &xpriv.private_key.key,
                     );

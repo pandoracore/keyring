@@ -11,15 +11,15 @@
 // along with this software.
 // If not, see <https://www.gnu.org/licenses/agpl-3.0-standalone.html>.
 
-use ::clap::{AppSettings, Clap, ValueHint};
-use ::std::path::PathBuf;
+use clap::{AppSettings, Clap, ValueHint};
+use std::path::PathBuf;
 
-use ::lnpbp::bitcoin::util::bip32::DerivationPath;
-use ::lnpbp::bitcoin::XpubIdentifier;
-use ::lnpbp::bp::bip32::KeyApplication;
-use ::lnpbp::bp::Chain;
-use ::lnpbp::hex::FromHex;
-use ::lnpbp_services::format;
+use bitcoin::hashes::hex::FromHex;
+use bitcoin::util::bip32::DerivationPath;
+use bitcoin::XpubIdentifier;
+use lnpbp::Chain;
+use microservices::format;
+use slip132::KeyApplication;
 
 pub const KEYRING_CLI_CONFIG: &'static str = "{data_dir}/keyring-cli.toml";
 

@@ -28,7 +28,11 @@ extern crate amplify;
 #[macro_use]
 extern crate amplify_derive;
 #[macro_use]
-extern crate lnpbp_derive;
+extern crate lnpbp;
+#[macro_use]
+extern crate internet2;
+#[macro_use]
+extern crate lazy_static;
 
 #[cfg(feature = "serde")]
 extern crate serde_crate as serde;
@@ -60,3 +64,9 @@ pub use vault::Vault;
 pub use error::RuntimeError;
 #[cfg(any(feature = "shell"))]
 pub use opts::Opts;
+
+lazy_static! {
+    /// Global Secp256k1 context object
+    pub static ref SECP256K1: bitcoin::secp256k1::Secp256k1<bitcoin::secp256k1::All> =
+        bitcoin::secp256k1::Secp256k1::new();
+}

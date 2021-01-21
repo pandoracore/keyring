@@ -29,21 +29,19 @@ use std::cmp::Ordering;
 use std::collections::{BTreeMap, BTreeSet, HashSet};
 use std::convert::TryFrom;
 
-use lnpbp::bitcoin;
-use lnpbp::bitcoin::hashes::hex::{FromHex, ToHex};
-use lnpbp::bitcoin::secp256k1;
-use lnpbp::bitcoin::util::bip32::{
+use bitcoin;
+use bitcoin::hashes::hex::{FromHex, ToHex};
+use bitcoin::secp256k1;
+use bitcoin::secp256k1::Signature;
+use bitcoin::util::bip32::{
     self, DerivationPath, ExtendedPrivKey, ExtendedPubKey, Fingerprint,
-    KeySource,
+    IntoDerivationPath, KeySource,
 };
-use lnpbp::bitcoin::XpubIdentifier;
-use lnpbp::bp::bip32::{
-    Decode, DerivationPathMaster, Encode, IntoDerivationPath, KeyApplication,
-};
-use lnpbp::bp::chain::{AssetId, Chain};
+use bitcoin::XpubIdentifier;
+use lnpbp::chain::{AssetId, Chain};
 use lnpbp::elgamal;
-use lnpbp::miniscript::bitcoin::secp256k1::Signature;
 use secp256k1::rand::{thread_rng, RngCore};
+use slip132::KeyApplication;
 
 /// Error cases related to keyring & keys account management and usage
 #[derive(Clone, PartialEq, Eq, Debug, Display, From, Error)]
@@ -183,6 +181,7 @@ impl Default for UpdateMode {
     StrictEncode,
     StrictDecode,
 )]
+#[strict_encoding_crate(lnpbp::strict_encoding)]
 #[serde(crate = "serde_crate")]
 #[display(Debug)]
 pub struct Keyring {
@@ -201,9 +200,9 @@ impl Keyring {
     /// extern crate amplify;
     ///
     /// use std::str::FromStr;
-    /// use lnpbp::bitcoin::secp256k1;
-    /// use lnpbp::bitcoin::util::bip32::KeyApplication;
-    /// use lnpbp::bp::Chain;
+    /// use bitcoin::secp256k1;
+    /// use bitcoin::util::bip32::KeyApplication;
+    /// use lnpbp::Chain;
     ///
     /// let keyring = loop {
     ///     if let Some(kr) = Keyring::new(
@@ -296,10 +295,10 @@ impl Keyring {
     /// #[macro_use]
     /// extern crate amplify;
     ///
+    /// use bitcoin::secp256k1;
+    /// use bitcoin::util::bip32::{DerivationPath, KeyApplication};
     /// use keyring::vault::keymgm::{Error, Keyring, KeysAccount, UpdateMode};
-    /// use lnpbp::bitcoin::secp256k1;
-    /// use lnpbp::bitcoin::util::bip32::{DerivationPath, KeyApplication};
-    /// use lnpbp::bp::Chain;
+    /// use lnpbp::Chain;
     /// use std::str::FromStr;
     ///
     /// # fn main() -> Result<(), Error> {
@@ -450,10 +449,10 @@ impl Keyring {
     /// ```
     /// # #[macro_use]
     /// # extern crate amplify;
+    /// use bitcoin::secp256k1;
+    /// use bitcoin::util::bip32::{DerivationPath, KeyApplication};
     /// use keyring::vault::keymgm::{Error, Keyring, KeysAccount, UpdateMode};
-    /// use lnpbp::bitcoin::secp256k1;
-    /// use lnpbp::bitcoin::util::bip32::{DerivationPath, KeyApplication};
-    /// use lnpbp::bp::Chain;
+    /// use lnpbp::Chain;
     /// use std::str::FromStr;
     ///
     /// # fn main() -> Result<(), Error> {
@@ -502,9 +501,9 @@ impl Keyring {
     /// # #[macro_use]
     /// # extern crate amplify;
     /// # use keyring::vault::keymgm::{Error, Keyring, KeysAccount, UpdateMode};
-    /// # use lnpbp::bitcoin::secp256k1;
-    /// # use lnpbp::bitcoin::util::bip32::{DerivationPath, KeyApplication};
-    /// # use lnpbp::bp::Chain;
+    /// # use bitcoin::secp256k1;
+    /// # use bitcoin::util::bip32::{DerivationPath, KeyApplication};
+    /// # use lnpbp::Chain;
     /// # use std::str::FromStr;
     /// #
     /// # fn main() -> Result<(), Error> {
@@ -636,6 +635,7 @@ impl Keyring {
     StrictEncode,
     StrictDecode,
 )]
+#[strict_encoding_crate(lnpbp::strict_encoding)]
 #[serde(crate = "serde_crate")]
 #[display("{name} ({xpubkey})")]
 pub struct KeysAccount {
@@ -686,7 +686,7 @@ impl KeysAccount {
 
         trace!("Creating master extended public key from the xpriv");
         let xpubkey =
-            ExtendedPubKey::from_private(&lnpbp::SECP256K1, &xprivkey);
+            ExtendedPubKey::from_private(&crate::SECP256K1, &xprivkey);
         // TODO: Uncomment after key resolves will get into rust-bitcoin
         //        .ok_or(Error::ResolverFailure)?;
 
@@ -704,7 +704,7 @@ impl KeysAccount {
 
         // Creating unblinding key
         let unblinding =
-            secp256k1::PublicKey::from_secret_key(&lnpbp::SECP256K1, &blinding);
+            secp256k1::PublicKey::from_secret_key(&crate::SECP256K1, &blinding);
 
         trace!("Encrypting private key");
         let mut encoded = xprivkey.encode();
@@ -754,13 +754,13 @@ impl KeysAccount {
 
         // Deriving encryption key from the decryption key
         let encryption_key = secp256k1::PublicKey::from_secret_key(
-            &lnpbp::SECP256K1,
+            &crate::SECP256K1,
             decryption_key,
         );
 
         let mut master_xpriv = self.xprivkey(&mut decryption_key)?;
         let master_xpub =
-            ExtendedPubKey::from_private(&lnpbp::SECP256K1, &master_xpriv);
+            ExtendedPubKey::from_private(&crate::SECP256K1, &master_xpriv);
         // TODO: Uncomment after key resolves will get into rust-bitcoin
         //  .ok_or(Error::ResolverFailure)?;
         if master_xpub != self.xpubkey {
@@ -771,9 +771,9 @@ impl KeysAccount {
 
         // Deriving new secret key
         let xprivkey =
-            master_xpriv.derive_priv(&lnpbp::SECP256K1, &derivation)?;
+            master_xpriv.derive_priv(&crate::SECP256K1, &derivation)?;
         let xpubkey =
-            ExtendedPubKey::from_private(&lnpbp::SECP256K1, &xprivkey);
+            ExtendedPubKey::from_private(&crate::SECP256K1, &xprivkey);
         // TODO: Uncomment after key resolves will get into rust-bitcoin
         //  .ok_or(Error::ResolverFailure)?;
 
@@ -781,7 +781,7 @@ impl KeysAccount {
         thread_rng().fill_bytes(&mut random);
         let mut blinding = secp256k1::SecretKey::from_slice(&random)?;
         let unblinding =
-            secp256k1::PublicKey::from_secret_key(&lnpbp::SECP256K1, &blinding);
+            secp256k1::PublicKey::from_secret_key(&crate::SECP256K1, &blinding);
         let encrypted = elgamal::encrypt(
             &xprivkey.encode(),
             encryption_key,
@@ -918,7 +918,7 @@ impl KeysAccount {
         let mut xprivkey = self.xprivkey(&mut decryption_key)?;
 
         trace!("Signing {}", digest);
-        let signature = lnpbp::SECP256K1.sign(
+        let signature = crate::SECP256K1.sign(
             &secp256k1::Message::from_slice(&digest[..])?,
             &xprivkey.private_key.key,
         );
