@@ -17,40 +17,39 @@ use internet2::presentation::Error;
 #[cfg(any(feature = "server", feature = "embedded"))]
 use crate::error::RuntimeError;
 
-#[derive(Clone, Debug, Display, LnpApi)]
-#[encoding_crate(lnpbp::strict_encoding)]
-#[lnp_api(encoding = "strict")]
+#[derive(Clone, Debug, Display, Api)]
+#[api(encoding = "strict")]
 #[non_exhaustive]
 pub enum Reply {
-    #[lnp_api(type = 0x0100)]
+    #[api(type = 0x0100)]
     #[display("success()")]
     Success,
 
-    #[lnp_api(type = 0x0102)]
+    #[api(type = 0x0102)]
     #[display("failure({0})")]
     Failure(microservices::rpc::Failure),
 
-    #[lnp_api(type = 0x0200)]
+    #[api(type = 0x0200)]
     #[display("keylist(...)")]
     Keylist(Vec<crate::rpc::types::AccountInfo>),
 
-    #[lnp_api(type = 0x0202)]
+    #[api(type = 0x0202)]
     #[display("account_info({0})")]
     AccountInfo(crate::rpc::types::AccountInfo),
 
-    #[lnp_api(type = 0x0300)]
+    #[api(type = 0x0300)]
     #[display("xpriv(...)")]
     XPriv(::bitcoin::util::bip32::ExtendedPrivKey),
 
-    #[lnp_api(type = 0x0302)]
+    #[api(type = 0x0302)]
     #[display("xpub({0})")]
     XPub(::bitcoin::util::bip32::ExtendedPubKey),
 
-    #[lnp_api(type = 0x0500)]
+    #[api(type = 0x0500)]
     #[display("signature({0})")]
     Signature(::bitcoin::secp256k1::Signature),
 
-    #[lnp_api(type = 0x0502)]
+    #[api(type = 0x0502)]
     #[display("psbt(...)")]
     Psbt(::bitcoin::util::psbt::PartiallySignedTransaction),
 }

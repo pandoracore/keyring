@@ -24,11 +24,13 @@ required-features = ["cli"]
 # Rust language
 amplify = "3"
 amplify_derive = "2.4.2"
-lnpbp = { version = "0.3", features = ["elgamal"] }
+strict_encoding = "1.1"
+lnpbp = { git = "https://github.com/LNP-BP/rust-lnpbp", features = ["elgamal"] }
 bitcoin = { version = "0.26", features = ["rand"] }
-slip132 = "0.3.0-rc.1"
-internet2 = { version = "0.3.4", default-features = false, features = ["derive", "descriptor-wallet", "bitcoin-ext"] }
-microservices = "0.3.2"
+slip132 = "0.3"
+internet2 = { git = "https://github.com/internet2-org/rust-internet2", default-features = false, features = ["derive"] }
+microservices = { git = "https://github.com/internet2-org/rust-internet2" }
+miniscript = "5.1"
 # Rust language
 lazy_static = "~1.4.0"
 chrono = "~0.4.19"
@@ -53,12 +55,11 @@ shellexpand = { version = "~2.0.0", optional = true }
 [build-dependencies]
 amplify = "3"
 amplify_derive = "2.4.2"
-lnpbp = "0.3"
-descriptor-wallet = "0.3"
+lnpbp = { git = "https://github.com/LNP-BP/rust-lnpbp", features = ["elgamal"] }
 bitcoin = "0.26"
-slip132 = "0.3.0-rc.1"
-internet2 = { version = "0.3.4", default-features = false, features = ["descriptor-wallet", "bitcoin-ext"] }
-microservices = { version = "0.3.2", default-features = false }
+slip132 = "0.3"
+internet2 = { git = "https://github.com/internet2-org/rust-internet2", default-features = false, features = ["derive"] }
+microservices = { git = "https://github.com/internet2-org/rust-internet2" }
 serde_crate = { package = "serde", version = "~1.0.106", features = ["derive"] }
 lazy_static = "~1.4.0"
 clap = "3.0.0-beta.2"
@@ -109,7 +110,7 @@ _rpc = []
 serde = ["serde_crate", "serde_with", "serde_yaml", "serde_json", "toml",
     "chrono/serde", "bitcoin/use-serde", "slip132/serde",
     "amplify/serde", "internet2/serde", "microservices/serde",
-    "lnpbp/serde", "descriptor-wallet/serde" ]
+    "lnpbp/serde" ]
 tor = ["microservices/tor", "internet2/tor"]
 vendored_openssl = ["microservices/vendored_openssl", "internet2/vendored_openssl"]
 

@@ -11,40 +11,39 @@
 // along with this software.
 // If not, see <https://www.gnu.org/licenses/agpl-3.0-standalone.html>.
 
-#[derive(Clone, Debug, Display, LnpApi)]
-#[encoding_crate(lnpbp::strict_encoding)]
-#[lnp_api(encoding = "strict")]
+#[derive(Clone, Debug, Display, Api)]
+#[api(encoding = "strict")]
 #[non_exhaustive]
 pub enum Request {
-    #[lnp_api(type = 0x0010)]
+    #[api(type = 0x0010)]
     #[display("list()")]
     List,
 
-    #[lnp_api(type = 0x0020)]
+    #[api(type = 0x0020)]
     #[display("seed({0})")]
     Seed(crate::rpc::message::Seed),
 
-    #[lnp_api(type = 0x0030)]
+    #[api(type = 0x0030)]
     #[display("exporT_xpub({0})")]
     ExportXpub(crate::rpc::message::Export),
 
-    #[lnp_api(type = 0x0032)]
+    #[api(type = 0x0032)]
     #[display("export_xpriv({0})")]
     ExportXpriv(crate::rpc::message::Export),
 
-    #[lnp_api(type = 0x0040)]
+    #[api(type = 0x0040)]
     #[display("derive({0})")]
     Derive(crate::rpc::message::Derive),
 
-    #[lnp_api(type = 0x0050)]
+    #[api(type = 0x0050)]
     #[display("sign_psbt({0})")]
     SignPsbt(crate::rpc::message::SignPsbt),
 
-    #[lnp_api(type = 0x0052)]
+    #[api(type = 0x0052)]
     #[display("sign_key({0})")]
     SignKey(crate::rpc::message::SignKey),
 
-    #[lnp_api(type = 0x0054)]
+    #[api(type = 0x0054)]
     #[display("sign_data({0})")]
     SignData(crate::rpc::message::SignData),
 }

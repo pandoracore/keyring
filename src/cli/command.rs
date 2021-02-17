@@ -32,11 +32,11 @@ use super::{
 use crate::rpc;
 
 impl Exec for Command {
-    type Runtime = Client;
+    type Client = Client;
     type Error = rpc::Error;
 
     #[inline]
-    fn exec(&self, runtime: &mut Client) -> Result<(), Self::Error> {
+    fn exec(self, runtime: &mut Client) -> Result<(), Self::Error> {
         match self {
             Command::Seed { subcommand } => subcommand.exec(runtime),
             Command::Xpub { subcommand } => subcommand.exec(runtime),
@@ -47,73 +47,73 @@ impl Exec for Command {
 }
 
 impl Exec for SeedCommand {
-    type Runtime = Client;
+    type Client = Client;
     type Error = rpc::Error;
 
     #[inline]
-    fn exec(&self, runtime: &mut Client) -> Result<(), Self::Error> {
+    fn exec(self, runtime: &mut Client) -> Result<(), Self::Error> {
         match self {
             SeedCommand::Create {
-                name,
-                details,
-                chain,
+                ref name,
+                ref details,
+                ref chain,
                 application,
             } => self.exec_create(
                 runtime,
                 name.clone(),
                 details.clone(),
                 chain.clone(),
-                *application,
+                application,
             ),
-            SeedCommand::Import { id } => self.exec_import(runtime, id),
-            SeedCommand::Export { id, file } => {
-                self.exec_export(runtime, id, file)
+            SeedCommand::Import { id } => self.exec_import(runtime, &id),
+            SeedCommand::Export { id, ref file } => {
+                self.exec_export(runtime, &id, file)
             }
         }
     }
 }
 
 impl Exec for XPubkeyCommand {
-    type Runtime = Client;
+    type Client = Client;
     type Error = rpc::Error;
 
     #[inline]
-    fn exec(&self, runtime: &mut Client) -> Result<(), Self::Error> {
+    fn exec(self, runtime: &mut Client) -> Result<(), Self::Error> {
         match self {
-            XPubkeyCommand::List { format } => self.exec_list(runtime, format),
+            XPubkeyCommand::List { format } => self.exec_list(runtime, &format),
             XPubkeyCommand::Derive {
                 id,
-                path,
-                name,
-                details,
-            } => self.exec_derive(runtime, id, path, name, details),
-            XPubkeyCommand::Export { id, file } => {
-                self.exec_export(runtime, id, file)
+                ref path,
+                ref name,
+                ref details,
+            } => self.exec_derive(runtime, &id, path, name, details),
+            XPubkeyCommand::Export { id, ref file } => {
+                self.exec_export(runtime, &id, file)
             }
         }
     }
 }
 
 impl Exec for XPrivkeyCommand {
-    type Runtime = Client;
+    type Client = Client;
     type Error = rpc::Error;
 
     #[inline]
-    fn exec(&self, runtime: &mut Client) -> Result<(), Self::Error> {
+    fn exec(self, runtime: &mut Client) -> Result<(), Self::Error> {
         match self {
-            XPrivkeyCommand::Export { id, file } => {
-                self.exec_export(runtime, id, file)
+            XPrivkeyCommand::Export { id, ref file } => {
+                self.exec_export(runtime, &id, file)
             }
         }
     }
 }
 
 impl Exec for SignCommand {
-    type Runtime = Client;
+    type Client = Client;
     type Error = rpc::Error;
 
     #[inline]
-    fn exec(&self, runtime: &mut Client) -> Result<(), Self::Error> {
+    fn exec(self, runtime: &mut Client) -> Result<(), Self::Error> {
         match self {
             SignCommand::Psbt {
                 format,
@@ -169,7 +169,7 @@ impl Exec for SignCommand {
             }
             SignCommand::File { .. } => unimplemented!(),
             SignCommand::Text { .. } => unimplemented!(),
-            SignCommand::Key { id } => self.exec_sign_key(runtime, *id),
+            SignCommand::Key { id } => self.exec_sign_key(runtime, id),
         }
     }
 }
